@@ -40,6 +40,8 @@ vignettes/*.pdf
 *.xport
 # Access
 *.mdb
-DataRaw/*
-DataProcessed/*
+DataRaw.nosync/*
+DataProcessed.nosync/*
 !*/ReadMe.md
+**/.DS_Store
+Background/*
