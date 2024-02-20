@@ -27,23 +27,56 @@ options(scipen = 6, digits = 4)
 ## load up the packages we will need:  (uncomment as required)
 
 require(tidyverse)
+require(magrittr)
 require(here) #Package for using relative pathnames
 require(geodata) #Package for downloading WorldClim data
 require(maps)
 require(sf)
 require(raster)
 require(ggmap)
-# WorldClim 2.0 -----------------------------------------------------------
-## Download Monthy Average Temp and Precip from WorldClim
-tavg <- worldclim_country(country = "United States", res = 2.5, var = "tavg", path = here("DataRaw.nosync/Covariates/WorldClim2"))
-prec <- worldclim_country(country = "United States", res = 2.5, var = "prec", path = here("DataRaw.nosync/Covariates/WorldClim2"))
+require(FedData)
 
+# WorldClim 2.0 -----------------------------------------------------------
+#Us State Polygons from "maps" package
+us_states <- st_as_sf(map("state", plot = F, fill = T))
+
+#Subset to the given region and project to match variable of interest
+targ_states <- c("Oregon", "Washington", "Idaho")
+
+pnw <- us_states %>% 
+  filter(ID %in% tolower(targ_states)) %>% 
+  st_transform(crs = st_crs("WGS84"))
+
+## Download Monthy Average Temp and Precip from WorldClim
+tavg <- worldclim_country(country = "United States", res = 0.5, var = "tavg", path = here("DataRaw.nosync/Covariates/WorldClim2"))
+prec <- worldclim_country(country = "United States", res = 0.5, var = "prec", path = here("DataRaw.nosync/Covariates/WorldClim2"))
+elev <- elevatr::get_elev_raster(pnw, z = 8, clip = "locations")
+nlcd <- get_nlcd(pnw, label = "PNW", year = 2021, extraction.dir = here("DataRaw.nosync/Covariates/NLCD"))
 
 # Convert Monthly Avg to Annual Avg ---------------------------------------
 tavg <- mean(tavg)
 prec <- mean(prec)
 
-crop_mask <- function(var, states = c("Oregon", "Washington", "Idaho")){
+
+# Get Forest Cover, Water, and Wetland (See https://www.mrlc.gov/data/legends/national-land-cover-database-class-legend-and-description) --------------------------------------------------------
+forest <- nlcd > 40 & nlcd < 50
+water <-  nlcd < 20 
+wetland <- nlcd >= 90
+
+test <- terra::project(forest, "epsg:4326")
+# Function for projecting, cropping, and resampling -----------------------
+
+crop_mask <- function(var, states = c("Oregon", "Washington", "Idaho"), target_res){
+  if (class(var) != "SpatRaster"){
+    var <- terra::rast(var)
+  }
+  #project the raster into WGS84
+  var <- terra::project(var, "epsg:4326")
+  #resample if not in the target resolution
+  if (res(var) != target_res){
+    resa
+  }
+  
   #Us State Polygons from "maps" package
   us_states <- st_as_sf(map("state", plot = F, fill = T))
   
@@ -62,8 +95,4 @@ crop_mask <- function(var, states = c("Oregon", "Washington", "Idaho")){
   return(msk)
 }
 
-tavg_pnw <- crop_mask(tavg)
-prec_pnw <- crop_mask(prec)
-
-ggmap()
 
