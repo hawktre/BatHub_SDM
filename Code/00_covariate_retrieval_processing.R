@@ -35,6 +35,7 @@ require(sf)
 require(raster)
 require(ggmap)
 require(FedData)
+require(viridis)
 
 # WorldClim 2.0 -----------------------------------------------------------
 #Us State Polygons from "maps" package
@@ -72,7 +73,7 @@ landfire <- terra::merge(landfire_or, landfire_wa, landfire_id, first = T)
 
 ## subset all cliffs and canyons categories
 lf_vals <- as.data.frame(unique(landfire)) %>% 
-  filter(str_detect(EVT_NAME, "Cliff"))
+  filter(str_detect(EVT_NAME, "Cliff") | str_detect(EVT_NAME, "Canyon"))
 
 ## Keep cliffs and canyons only
 cliff_canyon <- landfire %in% lf_vals$EVT_NAME
@@ -145,11 +146,15 @@ for (i in 2:length(covars)) {
 }
 
 covars_stack <- rast(covars) %>% 
-  tidyterra::rename("temp" = "tmp_precip_1",
-                    "precip" = "tmp_precip_2",
-                    "elevation" = "elev",
-                    "forest" = "landcov_1",
-                    "water" = "landcov_2",
-                    "wetland" = "landcov_3")
+  tidyterra::rename("Temperature" = "tmp_precip_1",
+                    "Precipitation (cm)" = "tmp_precip_2",
+                    "Elevation (M)" = "elev",
+                    "Forest Cover (%)" = "landcov_1",
+                    "Water (%)" = "landcov_2",
+                    "Wetland (%)" = "landcov_3",
+                    "Physiographic Diversity" = "ergo",
+                    "Cliff & Canyon (%)" = "cliff_canyon")
 
 plot(covars_stack, col = viridis(20))
+
+writeRaster(covars_stack, here("DataProcessed.nosync/Covariates/env_covars.tif"))
