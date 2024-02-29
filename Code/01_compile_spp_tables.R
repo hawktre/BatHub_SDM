@@ -103,11 +103,16 @@ master_wide$year <- year(master_wide$Night)
 
 ## Remove Duplicates
 master_wide <- master_wide %>% 
-  distinct() %>% 
-  apply(., 2, as.character)#There are no duplicates, but just to be sure
+  distinct() #There are no duplicates, but just to be sure
+
+## Format as character 
+master_wide$Night <- as.character(as.Date(master_wide$Night))
+master_wide$year <- as.character(master_wide$year)
+
+master_wide <- as.data.frame(apply(master_wide, 2, unlist))
 
 ## Write out
-write.table(master_wide, here("DataProcessed.nosync/SpeciesOccurrence/spp_occ_master.csv"), sep = ',')
+write.csv(master_wide, here("DataProcessed.nosync/SpeciesOccurrence/spp_occ_master.csv"))
 
 # Plot all points to be sure ----------------------------------------------
 #Us State Polygons from "maps" package
