@@ -32,6 +32,7 @@ require(data.table)
 require(sf)
 require(terra)
 require(maps)
+require(usmap)
 
 pointlocation <- read.csv(here("DataRaw.nosync/Database/tblPointLocation.csv"), na.strings = 'NA')
 acoustics <- data.table::fread(here("DataRaw.nosync/Database/tblDeploymentDetection7.csv"), na.strings = '')
@@ -101,18 +102,48 @@ master_wide <- master_wide %>%
 master_wide$Night <- mdy_hms(master_wide$Night)
 master_wide$year <- year(master_wide$Night)
 
+master_wide <- as.data.frame(apply(master_wide, 2, unlist))
+
 ## Remove Duplicates
 master_wide <- master_wide %>% 
   distinct() #There are no duplicates, but just to be sure
 
+master_wide %>% 
+  group_by(LocationName, year) %>% 
+  summarise(n = n()) %>% 
+  filter(n > 1)
+
+## For sites with multiple nights, spp was observed if observed on ANY night
+master_wide <- master_wide %>% 
+  group_by(LocationName, year) %>% 
+  summarise(Latitude = max(Latitude),
+            Longitude = max(Longitude),
+            laci = max(laci),
+            lano = max(lano),
+            myev = max(myev),
+            epfu = max(epfu),
+            myyu = max(myyu),
+            myth = max(myth),
+            myci = max(myci),
+            myvo = max(myvo),
+            tabr = max(tabr),
+            anpa = max(anpa),
+            pahe = max(pahe),
+            euma = max(euma),
+            myca = max(myca),
+            mylu = max(mylu),
+            coto = max(coto),
+            year = max(year)) %>% 
+  ungroup()
+
+
 ## Format as character 
-master_wide$Night <- as.character(as.Date(master_wide$Night))
 master_wide$year <- as.character(master_wide$year)
 
-master_wide <- as.data.frame(apply(master_wide, 2, unlist))
+
 
 ## Write out
-write.csv(master_wide, here("DataProcessed.nosync/SpeciesOccurrence/spp_occ_master.csv"))
+write_csv(master_wide, here("DataProcessed.nosync/SpeciesOccurrence/spp_occ_master.csv"))
 
 # Plot all points to be sure ----------------------------------------------
 #Us State Polygons from "maps" package
@@ -123,5 +154,13 @@ us_states <- us_map(regions = "states", include = c("OR", "WA", "ID")) %>%
 spp_occ <- st_as_sf(master_wide, coords = c("Longitude", "Latitude"), crs = "WGS84") 
 
 ggplot() +
-  geom_sf(data = pnw, alpha = 0.5)+
-  geom_sf(data = spp_occ, aes(color = as.factor(year)))
+  geom_sf(data = us_states)+
+  geom_sf(data = spp_occ %>% filter(year > 2016), aes(color = as.factor(year)))+
+  facet_wrap(~year, ncol = 3) +
+  labs(color = "Year",
+       title = "North West Bat Hub Survey Efforts 2017 - 2022")
+
+
+# Summary of occurances ---------------------------------------------------
+
+apply(master_wide[,5:ncol(master_wide)], 2, as.numeric)

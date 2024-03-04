@@ -57,6 +57,7 @@ pnw <- pnw %>%
   st_cast()
 
 plot(pnw)
+st_write(pnw, here("DataProcessed.nosync/Covariates/pnw_buff.gpkg"))
 ## Download Monthy Average Temp and Precip from WorldClim
 tavg <- worldclim_country(country = "United States", res = 0.5, var = "tavg", path = here("DataRaw.nosync/Covariates/WorldClim2"))
 prec <- worldclim_country(country = "United States", res = 0.5, var = "prec", path = here("DataRaw.nosync/Covariates/WorldClim2"))
@@ -157,4 +158,26 @@ covars_stack <- rast(covars) %>%
 
 plot(covars_stack, col = viridis(20))
 
-writeRaster(covars_stack, here("DataProcessed.nosync/Covariates/env_covars.tif"))
+# Plot Temp and Precip
+par(mfrow = c(2,1))
+plot(covars_stack[[1]], col = viridis(20), main = "Temperature")
+plot(covars_stack[[2]], col = viridis(20), main = "Precipitation")
+
+# Plot Elevation
+par(mfrow = c(1,1))
+plot(covars_stack[[3]], col = viridis(20), main = "Elevation")
+
+#Plot NLCD
+par(mfrow = c(3,1))
+plot(covars_stack[[5]], col = viridis(20), main = "Forest Cover (%)")
+plot(covars_stack[[6]], col = viridis(20), main = "Water (%)")
+plot(covars_stack[[7]], col = viridis(20), main = "Wetland (%)")
+
+#Plot Physiographic Diversity
+par(mfrow = c(1,1))
+plot(covars_stack[[4]], col = viridis(20), main = "Physiographic Diversity")
+
+#Plot Cliff and Canyon 
+plot(covars_stack[[8]],  col = viridis(20), main = "Cliff & Canyon Cover (%)")
+
+writeRaster(covars_stack, here("DataProcessed.nosync/Covariates/env_covars.tif"), overwrite = T)
