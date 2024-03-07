@@ -38,6 +38,7 @@ pointlocation <- read.csv(here("DataRaw.nosync/Database/tblPointLocation.csv"), 
 acoustics <- data.table::fread(here("DataRaw.nosync/Database/tblDeploymentDetection7.csv"), na.strings = '')
 deployment <- read.csv(here("DataRaw.nosync/Database/tblDeployment.csv"))
 
+
 # Select Columns we need --------------------------------------------------
 
 deployment <- deployment %>% 
@@ -86,6 +87,15 @@ possible_bats <- c("laci",
                    "myca",
                    "mylu",
                    "coto")
+
+
+# Remove WA TABR ----------------------------------------------------------
+
+##find the record
+bad_tabr <-master %>% filter(ManualIDSpp1 == "tabr") %>% dplyr::slice_max(Latitude) %>% .$ID
+
+##remove bad record
+master <- master %>% filter(ID != bad_tabr)
 
 # Pivot Wider to get Spp Richness -------------------------------------------------------------
 ## Pivot Wider
@@ -155,8 +165,8 @@ spp_occ <- st_as_sf(master_wide, coords = c("Longitude", "Latitude"), crs = "WGS
 
 ggplot() +
   geom_sf(data = us_states)+
-  geom_sf(data = spp_occ %>% filter(year > 2016), aes(color = as.factor(year)))+
-  facet_wrap(~year, ncol = 3) +
+  geom_sf(data = spp_occ %>% filter(year > 2016), aes(color = spp))+
+  facet_wrap(~spp, ncol = 3) +
   labs(color = "Year",
        title = "North West Bat Hub Survey Efforts 2017 - 2022")
 
