@@ -125,7 +125,7 @@ maxnet.fit <- function(occs, envs, bg, partitions){
   #run maxnet
   res <- ENMevaluate(occs = occs, envs = covars_stack, bg = bg,
               partitions = "user", user.grp = partitions,
-              tune.args = list(fc = c("L", "LQ", "LQH"), rm = 1:3),
+              tune.args = list(fc = c("L", "H", "LQ", "LQH"), rm = 1:5),
               algorithm = "maxnet", parallel = T)
 
   return(res)
