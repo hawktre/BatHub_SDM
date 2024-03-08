@@ -107,35 +107,36 @@ envs.bg.df <- bind_cols(st_coordinates(envs.bg), as.data.frame(envs.bg)) %>% cle
 
 # Partitioning ------------------------------------------------------------
 
-test.partition <- get.randomkfold(occs = spp_mats[["anpa"]], bg = envs.bg.df, kfolds = 5)
+kfold.partitions <- lapply(spp_mats, function(x) {get.randomkfold(occs = x, bg = envs.bg.df, kfolds = 5)})
 
 
-covars_stack <- raster::stack(covars)
+# Make a function for running maxent --------------------------------------
+
+maxnet.fit <- function(occs, envs, bg, partitions){
+  
+  #Select only lat and long for points
+  occs <- occs %>% select(x, y)
+  bg <- bg %>% select(x, y)
+
+  #Convert covariates to raster stack
+  covars_stack <- raster::stack(envs)
+
+
+  #run maxnet
+  res <- ENMevaluate(occs = occs, envs = covars_stack, bg = bg,
+              partitions = "user", user.grp = partitions,
+              tune.args = list(fc = c("L", "LQ", "LQH"), rm = 1:3),
+              algorithm = "maxnet", parallel = T)
+
+  return(res)
+  
+}
+
+
 # Run enmeval  ------------------------------------------------------------
 
-laci.res <- ENMevaluate(occs = spp_mats[["anpa"]] %>% select(x, y), envs = covars_stack, bg = envs.bg.df %>% select(x, y), partitions = "user", user.grp = test.partition,
-            tune.args = list(fc = c("L", "LQ", "LQH"), rm = 1:3), algorithm = "maxnet", parallel = T)
+all.res <- mapply(function(x, y){maxnet.fit(occs = x, envs = covars, bg = envs.bg.df, partitions = y)},
+                  x = spp_mats, y = kfold.partitions)
 
-res <- eval.results(laci.res)
-
-opt.seq <- res %>% 
-  filter(or.10p.avg == min(or.10p.avg)) %>% 
-  filter(auc.val.avg == max(auc.val.avg))
-
-opt.seq
-
-mod.seq <- eval.models(laci.res)[[opt.seq$tune.args]]
-
-round(mod.seq$betas, 3)
-
-ggplot()+
-  geom_spatraster(data = rast(laci.res@predictions[[2]]))+
-  scale_fill_viridis_c()
-
-library(leaflet)
-library(viridis)
-
-leaflet() %>% 
-  addTiles() %>% 
-  addRasterImage(rast(laci.res@predictions[[2]]), colors = viridis(20), opacity = 0.5)
-  
+saveRDS(all.res, here("DataProcessed.nosync/ModResults/all_res.rds"))
+ 
