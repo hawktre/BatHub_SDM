@@ -57,7 +57,7 @@ pnw <- pnw %>%
   st_cast()
 
 plot(pnw)
-st_write(pnw, here("DataProcessed.nosync/Covariates/pnw_buff.gpkg"))
+st_write(pnw, here("DataProcessed.nosync/Covariates/pnw_buff.gpkg"), append = F)
 ## Download Monthy Average Temp and Precip from WorldClim
 tavg <- worldclim_country(country = "United States", res = 0.5, var = "tavg", path = here("DataRaw.nosync/Covariates/WorldClim2"))
 prec <- worldclim_country(country = "United States", res = 0.5, var = "prec", path = here("DataRaw.nosync/Covariates/WorldClim2"))
@@ -140,9 +140,19 @@ covars <- list("tmp_precip" = covars_crop[[1]],
                "cliff_canyon" = covars_crop[[5]])
 
 for (i in 2:length(covars)) {
-  print(names(covars[[i]]))
+  print(names(covars[i]))
+  
+  ## Resample ergo using mode because categorical variable
+  if (names(covars[i]) == "ergo") {
+  
+    covars[[i]] <- terra::resample(covars[[i]], covars[["tmp_precip"]], threads = T, method = "mode")
+    
+  }
+  
+  else{
   #Resample all rasters to have the same resolution and extent as tmp_precip
-  covars[[i]] <- resample(covars[[i]], covars[["tmp_precip"]], threads = T, method = "average")
+  covars[[i]] <- terra::resample(covars[[i]], covars[["tmp_precip"]], threads = T, method = "average")
+  }
   
 }
 
@@ -156,7 +166,9 @@ covars_stack <- rast(covars) %>%
                     "Physiographic Diversity" = "ergo",
                     "Cliff & Canyon (%)" = "cliff_canyon")
 
+
 plot(covars_stack, col = viridis(20))
+
 
 # Plot Temp and Precip
 par(mfrow = c(2,1))

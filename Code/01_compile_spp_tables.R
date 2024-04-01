@@ -37,7 +37,8 @@ require(usmap)
 pointlocation <- read.csv(here("DataRaw.nosync/Database/tblPointLocation.csv"), na.strings = 'NA')
 acoustics <- data.table::fread(here("DataRaw.nosync/Database/tblDeploymentDetection7.csv"), na.strings = '')
 deployment <- read.csv(here("DataRaw.nosync/Database/tblDeployment.csv"))
-
+wbwg <- readxl::read_xlsx(here("Background/SpeciesNatHistMatrix.xlsx"), sheet = 2) %>% 
+  drop_na(fourlettername)
 
 # Select Columns we need --------------------------------------------------
 
@@ -48,7 +49,7 @@ acoustics <- acoustics %>% select(ID, DeploymentID, Night, ManualIDSpp1, ManualI
 
 pointlocation <- pointlocation %>% select(ID, LocationName, Latitude, Longitude)
 
-
+wbwg <- wbwg %>% select(fourlettername, `SUM ROOST`, SPECIES)
 # Join the tables together to create one table ----------------------------
 
 master <- left_join(acoustics, deployment, by = c("DeploymentID" = "ID")) %>% 
@@ -156,21 +157,72 @@ master_wide$year <- as.character(master_wide$year)
 write_csv(master_wide, here("DataProcessed.nosync/SpeciesOccurrence/spp_occ_master.csv"))
 
 # Plot all points to be sure ----------------------------------------------
-#Us State Polygons from "maps" package
 us_states <- us_map(regions = "states", include = c("OR", "WA", "ID")) %>% 
-  st_transform(crs = "WGS84")
+  st_transform(crs = 'WGS84')
+#Us State Polygons from "maps" package
+pnw <- us_map(regions = "states", include = c("OR", "WA", "ID")) %>% 
+  st_transform(crs = '+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83')
+
+#Add buffer and union
+pnw <- pnw %>% 
+  st_make_valid() %>% 
+  st_buffer(10000) %>% 
+  st_union() %>% 
+  st_transform(crs = "WGS84") %>% 
+  st_sf() %>% 
+  st_cast()
+
+#Pivot Longer
+master_long <- pivot_longer(master_wide, cols = 5:ncol(master_wide), names_to = "spp", values_to = "presence") %>% 
+  filter(presence > 0) %>% 
+  left_join(., wbwg, by = c("spp" = "fourlettername"))
 
 #Convert points to SF object
-spp_occ <- st_as_sf(master_wide, coords = c("Longitude", "Latitude"), crs = "WGS84") 
+spp_occ <- st_as_sf(master_long, coords = c("Longitude", "Latitude"), crs = "WGS84") 
 
-ggplot() +
+spp_occ <- st_crop(spp_occ, pnw)
+# Create Plots ------------------------------------------------------------
+plot.occs <- function(bg, spp.occ, spp.group, pal){
+  ggplot() +
+    geom_sf(data = us_states)+
+    geom_sf(data = spp.occ %>% filter(`SUM ROOST` == spp.group), aes(col = spp))+
+    facet_wrap(~SPECIES, ncol = 3) +
+    scale_color_brewer(palette = pal)+
+    labs(color = "Year",
+         title = "Species Occurrences 2016-2022")+
+    theme(legend.position = "none",
+          axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.ticks.y = element_blank())
+}
+
+## Overall Plot
+overall.occs <- ggplot() +
   geom_sf(data = us_states)+
-  geom_sf(data = spp_occ %>% filter(year > 2016), aes(color = spp))+
-  facet_wrap(~spp, ncol = 3) +
+  geom_sf(data = spp_occ, aes(col = year))+
+  facet_wrap(~year, ncol = 3) +
   labs(color = "Year",
-       title = "North West Bat Hub Survey Efforts 2017 - 2022")
+       title = "Species Occurrences 2016-2022")+
+  theme(legend.position = "none",
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.ticks.y = element_blank())
+ggsave(filename = "overall_occs.png", plot = overall.occs, path = here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
+## Generalists
+general.occs <- plot.occs(us_states, spp_occ, spp.group = "GENERAL", pal = "Set1")
+ggsave(filename = "general_occs.png", plot = general.occs, path = here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
 
+## Cliff/Cave
+cliff.occs <- plot.occs(us_states, spp_occ, spp.group = "CLIFF", pal = "Set2")
+ggsave(filename = "cliffcanyon_occs.png", plot = cliff.occs, path = here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
 
-# Summary of occurances ---------------------------------------------------
+## Trees
+trees.occs <- plot.occs(us_states, spp_occ, spp.group = "TREES", pal = "Set3")
+ggsave(filename = "trees_occs.png", plot = trees.occs, path = here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
 
-apply(master_wide[,5:ncol(master_wide)], 2, as.numeric)
+## Other
+other.occs <- plot.occs(us_states, spp_occ, spp.group = "OTHER", pal = "Accent")
+ggsave(filename = "other_occs.png", plot = other.occs,path = here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
+

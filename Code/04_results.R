@@ -31,11 +31,14 @@ require(here)
 require(terra)
 require(ENMeval)
 require(leaflet)
+require(tidyterra)
 
 # Read in the results -----------------------------------------------------
 all.res <- readRDS(here("DataProcessed.nosync/ModResults/all_res.rds"))
+block.res <- readRDS(here("DataProcessed.nosync/ModResults/block_res.rds"))
 
-
+wbwg <- readxl::read_xlsx(here("Background/SpeciesNatHistMatrix.xlsx"), sheet = 2) %>% 
+  drop_na(fourlettername)
 
 # Select the best models by ommission rate and AUC ------------------------
 #Create the function
@@ -51,30 +54,85 @@ get.res <- function(mods){
 }
 
 
-best.mods <- lapply(all.res, get.res)
+best.mods.kmeans <- lapply(all.res, get.res)
+best.mods.block <- lapply(block.res, get.res)
 
 
-preds.rast <- rast()
+# Create rasters for selected best models ---------------------------------
+kmeans.rast <- rast()
+block.rast <- rast()
 
 for (i in 1:length(all.res)) {
   
   
   #Extract the best result by ommission rate and AUC
-  terra::add(preds.rast) <- rast(all.res[[i]]@predictions[[best.mods[[i]]$tune.args]])
+  terra::add(kmeans.rast) <- rast(all.res[[i]]@predictions[[best.mods.kmeans[[i]]$tune.args]])
+  terra::add(block.rast) <- rast(block.res[[i]]@predictions[[best.mods.block[[i]]$tune.args]])
   
 }
 
-names(preds.rast) <- names(all.res)
+## fix the names of the rasters
+names(kmeans.rast) <- names(all.res)
+names(block.rast) <- names(block.res)
 
-pal <- colorNumeric(c(viridis::viridis(20)), values(preds.rast[["anpa"]]),
+## Set the colors for the raster
+pal <- colorNumeric(c(viridis::viridis(20)), values(block.rast[["anpa"]]),
                     na.color = "transparent")
 
-library(htmlwidgets)
-m <- leaflet() %>% 
-  addTiles() %>% 
-  addRasterImage(x = preds.rast[["anpa"]], colors = pal, opacity = 0.5) %>% 
-  addLegend(pal = pal, values = values(preds.rast[["anpa"]]), title = "Occurrence Prob.") 
+## Fix names to display scientific name
+names_map <- as.data.frame(names(kmeans.rast))
+names(names_map) <- c("fourlettername")
 
-m
+names_map <- names_map %>% 
+  left_join(wbwg %>% select(fourlettername, SPECIES, `SUM ROOST`), by = "fourlettername")
 
-saveWidget(m, file = here("DataProcessed.nosync/ModResults/test_widget.html"), selfcontained = T)
+## Fix names in rasters
+names(kmeans.rast) <- names_map$SPECIES
+names(block.rast) <- names_map$SPECIES
+
+generalists <- wbwg$SPECIES[which(wbwg$`SUM ROOST` == "GENERAL")]
+cliff_cave <- wbwg$SPECIES[which(wbwg$`SUM ROOST` == "CLIFF")]
+tree <- wbwg$SPECIES[which(wbwg$`SUM ROOST` == "TREES")]
+other <- wbwg$SPECIES[which(wbwg$`SUM ROOST` == "OTHER")]
+
+
+# Creating Plots ----------------------------------------------------------
+
+plot.preds <- function(res.type, spp.group){
+  ggplot()+
+    geom_spatraster(data = res.type[[spp.group]])+
+    facet_wrap(~lyr)+
+    scale_fill_viridis_c(na.value = "transparent")+
+    labs(fill = "Occ. Prob.")+
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.ticks.y = element_blank())
+}
+
+## generalists
+general.kmeans <- plot.preds(kmeans.rast, generalists)
+general.block <- plot.preds(block.rast, generalists)
+
+ggsave(filename = "general_res.png", plot = general.block, here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
+
+## Cliff/Canyon
+cliff.kmeans <- plot.preds(kmeans.rast, cliff_cave)
+cliff.block <- plot.preds(block.rast, cliff_cave)
+
+ggsave(filename = "cliffcanyon_res.png", plot = cliff.block, here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
+
+## Trees
+trees.kmeans <- plot.preds(kmeans.rast, tree)
+trees.block <- plot.preds(block.rast, tree)
+
+ggsave(filename = "trees_res.png", plot = trees.block, here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
+
+## Other
+other.kmeans <- plot.preds(kmeans.rast, other)
+other.block <- plot.preds(block.rast, other)
+
+ggsave(filename = "other_res.png", plot = other.block, here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
+
+
+

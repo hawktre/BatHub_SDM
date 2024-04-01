@@ -42,6 +42,10 @@ covars <- rast(here("DataProcessed.nosync/Covariates/env_covars.tif"))
 pnw <- st_read(here("DataProcessed.nosync/Covariates/pnw_buff.gpkg"))
 
 
+# Drop ergo landforms from covars -----------------------------------------
+
+covars <- covars %>% select(-"Physiographic Diversity")
+
 # Create results vector for each species -------------------------------
 ## Define all bats
 possible_bats <- c("laci",
@@ -91,6 +95,9 @@ spat_extract <- function(occs){
 ## Extract covariate values for all spp matrices and clean up names
 spp_mats <- lapply(spp_list, spat_extract) %>% lapply(., clean_names)
 
+## Remove Tabr not enough samples
+spp_mats <- spp_mats[names(spp_mats) != "tabr"]
+
 # Background Points -------------------------------------------------------
 ## We are going to do something with a random component, so we set the seed for reproducibility
 set.seed(123)
@@ -109,6 +116,8 @@ envs.bg.df <- bind_cols(st_coordinates(envs.bg), as.data.frame(envs.bg)) %>% cle
 
 kfold.partitions <- lapply(spp_mats, function(x) {get.randomkfold(occs = x, bg = envs.bg.df, kfolds = 5)})
 
+block.partitions <- lapply(spp_mats, function(x) {get.block(occs = x, bg = envs.bg.df, orientation = "lat_lon")})
+
 
 # Make a function for running maxent --------------------------------------
 
@@ -120,12 +129,15 @@ maxnet.fit <- function(occs, envs, bg, partitions){
 
   #Convert covariates to raster stack
   covars_stack <- raster::stack(envs)
+  
+  print(names(covars_stack))
 
 
   #run maxnet
+  
   res <- ENMevaluate(occs = occs, envs = covars_stack, bg = bg,
               partitions = "user", user.grp = partitions,
-              tune.args = list(fc = c("L", "H", "LQ", "LQH"), rm = 1:5),
+              tune.args = list(fc = c("L", "LQ", "LQH"), rm = 1:5),
               algorithm = "maxnet", parallel = T)
 
   return(res)
@@ -138,5 +150,10 @@ maxnet.fit <- function(occs, envs, bg, partitions){
 all.res <- mapply(function(x, y){maxnet.fit(occs = x, envs = covars, bg = envs.bg.df, partitions = y)},
                   x = spp_mats, y = kfold.partitions)
 
+block.res <- mapply(function(x, y){maxnet.fit(occs = x, envs = covars, bg = envs.bg.df, partitions = y)},
+                    x = spp_mats, y = block.partitions)
+
+# Save results ------------------------------------------------------------
 saveRDS(all.res, here("DataProcessed.nosync/ModResults/all_res.rds"))
+saveRDS(block.res, here("DataProcessed.nosync/ModResults/block_res.rds"))
  
