@@ -75,6 +75,8 @@ for (i in 1:length(all.res)) {
 names(kmeans.rast) <- names(all.res)
 names(block.rast) <- names(block.res)
 
+terra::writeRaster(block.rast, here("DataProcessed.nosync/ModResults/all_blockres.tiff"))
+
 ## Set the colors for the raster
 pal <- colorNumeric(c(viridis::viridis(20)), values(block.rast[["anpa"]]),
                     na.color = "transparent")
@@ -114,25 +116,25 @@ plot.preds <- function(res.type, spp.group){
 general.kmeans <- plot.preds(kmeans.rast, generalists)
 general.block <- plot.preds(block.rast, generalists)
 
-ggsave(filename = "general_res.png", plot = general.block, here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
+ggsave(filename = "general_res.png", plot = general.block, path = here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
 
 ## Cliff/Canyon
 cliff.kmeans <- plot.preds(kmeans.rast, cliff_cave)
 cliff.block <- plot.preds(block.rast, cliff_cave)
 
-ggsave(filename = "cliffcanyon_res.png", plot = cliff.block, here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
+ggsave(filename = "cliffcanyon_res.png", plot = cliff.block, path = here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
 
 ## Trees
 trees.kmeans <- plot.preds(kmeans.rast, tree)
 trees.block <- plot.preds(block.rast, tree)
 
-ggsave(filename = "trees_res.png", plot = trees.block, here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
+ggsave(filename = "trees_res.png", plot = trees.block, path = here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
 
 ## Other
 other.kmeans <- plot.preds(kmeans.rast, other)
 other.block <- plot.preds(block.rast, other)
 
-ggsave(filename = "other_res.png", plot = other.block, here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
+ggsave(filename = "other_res.png", plot = other.block, path = here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
 
 
-
+plot.preds(block.rast, "Parastrellus hesperus")
