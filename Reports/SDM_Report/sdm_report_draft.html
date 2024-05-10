@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.553">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Trent VanHawkins">
+<meta name="author" content="Beth Ward">
+<meta name="author" content="Tom Rodhouse">
+
+<title>Creating Range Maps For Bats of The Pacific Northwest</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="sdm_report_draft_files/libs/clipboard/clipboard.min.js"></script>
+<script src="sdm_report_draft_files/libs/quarto-html/quarto.js"></script>
+<script src="sdm_report_draft_files/libs/quarto-html/popper.min.js"></script>
+<script src="sdm_report_draft_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="sdm_report_draft_files/libs/quarto-html/anchor.min.js"></script>
+<link href="sdm_report_draft_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="sdm_report_draft_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="sdm_report_draft_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="sdm_report_draft_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="sdm_report_draft_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Creating Range Maps For Bats of The Pacific Northwest</h1>
+</div>
+
+
+<div class="quarto-title-meta-author">
+  <div class="quarto-title-meta-heading">Authors</div>
+  <div class="quarto-title-meta-heading">Affiliations</div>
+  
+    <div class="quarto-title-meta-contents">
+    <p class="author">Trent VanHawkins </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            On Belay Statistical Consulting
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Beth Ward </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            Oregon State University-Cascades
+          </p>
+      </div>
+    <div class="quarto-title-meta-contents">
+    <p class="author">Tom Rodhouse, PhD </p>
+  </div>
+  <div class="quarto-title-meta-contents">
+        <p class="affiliation">
+            National Park Service
+          </p>
+      </div>
+  </div>
+
+<div class="quarto-title-meta">
+
+      
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="background" class="level1">
+<h1>Background</h1>
+<p>The Northwestern Hub for Bat Population Research and Monitoring (Northwest Bat Hub) began efforts at annual summer occupancy surveys for the 15 endemic bat species to the Pacific Northwest in 2016 as a regional member of the North American Bat Monitoring Program (NABat). This effort has led to the collection of a robust species occurrence dataset–currently spanning eight years– which has contributed to national efforts to analyze population-level trends at the national level for certain species<span class="citation" data-cites="udell"><sup><a href="#ref-udell" role="doc-biblioref">1</a></sup></span>. At a regional level, the Northwest Bat Hub has also produced many publications influencing study design<span class="citation" data-cites="reichert2021 rodhouse2017"><sup><a href="#ref-reichert2021" role="doc-biblioref">2</a>,<a href="#ref-rodhouse2017" role="doc-biblioref">3</a></sup></span>, data analysis<span class="citation" data-cites="irvine2018"><sup><a href="#ref-irvine2018" role="doc-biblioref">4</a></sup></span>, and conservation management<span class="citation" data-cites="rodhouse2019 rodhouse2021"><sup><a href="#ref-rodhouse2019" role="doc-biblioref">5</a>,<a href="#ref-rodhouse2021" role="doc-biblioref">6</a></sup></span>.</p>
+<p>Perhaps one of the greatest challenges of this large-scale, regional monitoring effort is data management. With dozens of individuals across many partnering agencies completing surveys, the Northwest Bat Hub has invested significantly in survey standardization using mobile data collection technologies such as ArcGIS Collector Field Maps and Survey123. Standardization of these surveys has allowed the Bat Hub to build extensive data management protocols and programmatic data pipelines using the popular statistical software ‘R’. At the time of this report, these pipelines address the following needs:</p>
+<ul>
+<li><p>Site Metadata Quality Assurance and Control (QA/QC)</p></li>
+<li><p>Acoustic File ‘scrubbing’, attribution, and auto-classification using SonoBat Data Wizard</p></li>
+<li><p>Data preparation for the national NABat data upload, BatAMP, and the Bat Hub’s local metadata storage in a Microsoft Access Database (.accdb)</p></li>
+<li><p>Report generation for partner agencies of the Northwest Bat Hub</p></li>
+</ul>
+<p>Over time, these pipelines and protocols have greatly improved the Bat Hub’s efficiency in annually processing data collected in the field and providing feedback for partnering agencies. Currently, feedback and data insights are provided to partners in three forms: 1) vetted outputs of species occurrence for each sample unit falling under a particular agency’s management jurisdiction (<strong>Figure 1</strong>), 2) partner agency and Pacific Northwest regional annual NABat reports and 3) publication in academic journals using novel methodology derived by the Northwest Bat Hub and its contributors.</p>
+<div id="fig-dataviewer" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-dataviewer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<a href="https://experience.arcgis.com/experience/13bd843b1eda4dbdac79419c5b1ba63e/page/Map-Page/"><img src="figures/data_viewer.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></a>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dataviewer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: The Bat Hub Data Viewer
+</figcaption>
+</figure>
+</div>
+<p>Data pipelines and tools like the Northwest Bat Hub Data Viewer help the Bat Hub to meet reporting requirements for its partners, and the Bat Hub’s publications have provided invaluable data insights–particularly for the Little Brown Bat (Myotis lucifugus) and the Hoary Bat (Lasiurus cinereus)<span class="citation" data-cites="rodhouse2019"><sup><a href="#ref-rodhouse2019" role="doc-biblioref">5</a></sup></span>. The statistical methodology used for these publications in many cases have been specifically designed with the NABat sampling strategy in mind, and inferences gleaned using these methods should not be ignored. It is possible, however, that other flexible modeling strategies could be built into the Bat Hub’s pre-existing data pipelines to leverage the Bat Hub’s annual monitoring efforts and give dynamic data insights to partners without the heavy lifting of the publication process. Furthermore, partners of the Northwest Bat Hub are still in need of updated range maps for many bat species of the pacific northwest.</p>
+<p>In this report, we will describe our approach to creating range maps for bat species in the three-state region of Oregon, Washington, and Idaho using the Maximum Entropy (MaxEnt) machine learning method. We then demonstrate how our approach can be flexibly implemented as a straight-forward extension to existing Bat Hub protocols. Finally, we discuss how collaborators might interpret and leverage model results in decision-making processes to support bat conservation.</p>
+</section>
+<section id="the-approach" class="level1">
+<h1>The Approach</h1>
+<section id="why-use-maxent" class="level2">
+<h2 class="anchored" data-anchor-id="why-use-maxent">Why use MaxEnt?</h2>
+<p>Species Distribution Models (SDMs) are a part of a growing field of spatiotemporal models that leverage advancements in Machine Learning (ML) and Artificial Intelligence (AI). The Maximum Entropy (MaxEnt)<span class="citation" data-cites="phillips2017a"><sup><a href="#ref-phillips2017a" role="doc-biblioref">7</a></sup></span> method has become particularly popular due to its ability to handle presence-only data (e.g.&nbsp;the data generated by NABat acoustic monitoring efforts) and its availability through open-source releases of the original java application<span class="citation" data-cites="phillipsc"><sup><a href="#ref-phillipsc" role="doc-biblioref">8</a></sup></span> and approximations in statistical modeling software ‘R’<span class="citation" data-cites="kass2021a"><sup><a href="#ref-kass2021a" role="doc-biblioref">9</a></sup></span>. We propose that we can leverage this openly available software to build a user-friendly extension of the Northwest Bat Hub’s data management pipeline that will efficiently provide visual data insights and summaries to its partners.</p>
+<p>Briefly, MaxEnt works to make predictions about the probability of species occurrence across a study area given a set of vetted observations and a set of rasterized explanatory variables, also termed <em>environmental covariates.</em> The spatial resolution of the resulting predictions is determined by the spatial resolution of the available environmental covariates. In the context of this report, the study are of interest is the three-state region of Oregon, Washington, and Idaho. Species observation records were obtained from the Northwest Bat Hub’s vetted acoustic monitoring records and environmental covariates (Table 1) were determined through literature review<span class="citation" data-cites="udell rodhouse2019 rodhouse2021"><sup><a href="#ref-udell" role="doc-biblioref">1</a>,<a href="#ref-rodhouse2019" role="doc-biblioref">5</a>,<a href="#ref-rodhouse2021" role="doc-biblioref">6</a></sup></span> and obtained from various sources. An in-depth and explanation and motivation for the use of MaxEnt for ecological modeling purposes can be found in Elith et al., 2011 -<span class="citation" data-cites="elith2011"><sup><a href="#ref-elith2011" role="doc-biblioref">10</a></sup></span>.</p>
+</section>
+<section id="the-data" class="level2">
+<h2 class="anchored" data-anchor-id="the-data">The Data</h2>
+<p>To recreate this analysis, three files are required:</p>
+<ol type="1">
+<li></li>
+</ol>
+</section>
+<section id="running-the-maxent-model" class="level2">
+<h2 class="anchored" data-anchor-id="running-the-maxent-model">Running the MaxEnt Model</h2>
+</section>
+</section>
+<section id="viewing-and-interpreting-range-maps" class="level1">
+<h1>Viewing and Interpreting Range Maps</h1>
+</section>
+<section id="future-directions" class="level1">
+<h1>Future Directions</h1>
+</section>
+<section id="references" class="level1">
+<h1>References</h1>
+<div id="refs" class="references csl-bib-body" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-udell" class="csl-entry" role="listitem">
+<div class="csl-left-margin">1. </div><div class="csl-right-inline">Udell, B. J. <em>et al.</em> Status and trends of north american bats summer occupancy analysis 2010-2019 data release. doi:<a href="https://doi.org/10.5066/P92JGACB">10.5066/P92JGACB</a>.</div>
+</div>
+<div id="ref-reichert2021" class="csl-entry" role="listitem">
+<div class="csl-left-margin">2. </div><div class="csl-right-inline">Reichert, B. E. <em>et al.</em> <a href="https://doi.org/10.1007/s13280-020-01411-y">NABat: A top-down, bottom-up solution to collaborative continental-scale monitoring</a>. <em>Ambio</em> <strong>50</strong>, 901–913 (2021).</div>
+</div>
+<div id="ref-rodhouse2017" class="csl-entry" role="listitem">
+<div class="csl-left-margin">3. </div><div class="csl-right-inline">Rodhouse, T. &amp; Irvine, K. <em>The master sample concept as a catalyst for collaborative continental-scale research and monitoring</em>. (2017).</div>
+</div>
+<div id="ref-irvine2018" class="csl-entry" role="listitem">
+<div class="csl-left-margin">4. </div><div class="csl-right-inline">Irvine, K. M., Rodhouse, T. J., Wright, W. J. &amp; Olsen, A. R. <a href="https://doi.org/10.1002/eap.1754">Occupancy modeling species<span></span>environment relationships with non<span>-</span>ignorable survey designs</a>. <em>Ecological Applications</em> <strong>28</strong>, 1616–1625 (2018).</div>
+</div>
+<div id="ref-rodhouse2019" class="csl-entry" role="listitem">
+<div class="csl-left-margin">5. </div><div class="csl-right-inline">Rodhouse, T. J. <em>et al.</em> <a href="https://doi.org/10.1002/ece3.5612">Evidence of region-wide bat population decline from long-term monitoring and Bayesian occupancy models with empirically informed priors</a>. <em>Ecology and Evolution</em> <strong>9</strong>, 11078–11088 (2019).</div>
+</div>
+<div id="ref-rodhouse2021" class="csl-entry" role="listitem">
+<div class="csl-left-margin">6. </div><div class="csl-right-inline">Rodhouse, T. J., Rose, S., Hawkins, T. &amp; Rodriguez, R. M. <a href="https://doi.org/10.1111/csp2.435">Audible bats provide opportunities for citizen scientists</a>. <em>Conservation Science and Practice</em> <strong>3</strong>, e435 (2021).</div>
+</div>
+<div id="ref-phillips2017a" class="csl-entry" role="listitem">
+<div class="csl-left-margin">7. </div><div class="csl-right-inline">Phillips, S. J., Anderson, R. P., Dudík, M., Schapire, R. E. &amp; Blair, M. E. <a href="https://doi.org/10.1111/ecog.03049">Opening the black box: an open-source release of Maxent</a>. <em>Ecography</em> <strong>40</strong>, 887–893 (2017).</div>
+</div>
+<div id="ref-phillipsc" class="csl-entry" role="listitem">
+<div class="csl-left-margin">8. </div><div class="csl-right-inline">Phillips, S. J., Dudík, M. &amp; Schapire, R. E. <em><a href="http://biodiversityinformatics.amnh.org/open_source/maxent/">Maxent software for modeling species niches and distributions</a></em>.</div>
+</div>
+<div id="ref-kass2021a" class="csl-entry" role="listitem">
+<div class="csl-left-margin">9. </div><div class="csl-right-inline">Kass, J. M. <em>et al.</em> ENMeval 2.0: Redesigned for customizable and reproducible modeling of species<span>’</span> niches and distributions. <em>Methods in Ecology and Evolution</em> <strong>12</strong>, 1602–1608 (2021).</div>
+</div>
+<div id="ref-elith2011" class="csl-entry" role="listitem">
+<div class="csl-left-margin">10. </div><div class="csl-right-inline">Elith, J. <em>et al.</em> <a href="https://doi.org/10.1111/j.1472-4642.2010.00725.x">A statistical explanation of MaxEnt for ecologists</a>. <em>Diversity and Distributions</em> <strong>17</strong>, 43–57 (2011).</div>
+</div>
+</div>
+</section>
+<section id="appendix" class="level1">
+<h1>Appendix</h1>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

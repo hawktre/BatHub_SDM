@@ -58,6 +58,7 @@ best.mods.kmeans <- lapply(all.res, get.res)
 best.mods.block <- lapply(block.res, get.res)
 
 
+
 # Create rasters for selected best models ---------------------------------
 kmeans.rast <- rast()
 block.rast <- rast()
@@ -75,7 +76,6 @@ for (i in 1:length(all.res)) {
 names(kmeans.rast) <- names(all.res)
 names(block.rast) <- names(block.res)
 
-terra::writeRaster(block.rast, here("DataProcessed.nosync/ModResults/all_blockres.tiff"))
 
 ## Set the colors for the raster
 pal <- colorNumeric(c(viridis::viridis(20)), values(block.rast[["anpa"]]),
@@ -92,11 +92,44 @@ names_map <- names_map %>%
 names(kmeans.rast) <- names_map$SPECIES
 names(block.rast) <- names_map$SPECIES
 
+terra::writeRaster(block.rast, here("DataProcessed.nosync/ModResults/all_blockres.tiff"), overwrite = T)
+
 generalists <- wbwg$SPECIES[which(wbwg$`SUM ROOST` == "GENERAL")]
 cliff_cave <- wbwg$SPECIES[which(wbwg$`SUM ROOST` == "CLIFF")]
 tree <- wbwg$SPECIES[which(wbwg$`SUM ROOST` == "TREES")]
 other <- wbwg$SPECIES[which(wbwg$`SUM ROOST` == "OTHER")]
 
+# Get the Betas -----------------------------------------------------------
+betas <- mapply(function(res, opt) {
+  tmp <- ENMeval::eval.models(res)[[opt$tune.args]]
+  return(tmp$betas)},
+  res = block.res,
+  opt = best.mods.block)
+
+names(betas) <- names_map$SPECIES
+
+get_top_preds <- function(betas){
+  #Get the top 3 predictors
+  top_preds <- lapply(betas, function(x) {x[order(abs(x), decreasing = T)][1:3]})
+  
+  #Create a dataframe
+  top_preds_df <- bind_rows(top_preds) %>% 
+    mutate(species = names(top_preds)) %>% 
+    select(species, everything()) %>% 
+    pivot_longer(cols = c(-1), names_to = "Variable Name", values_to = "Beta") %>% 
+    drop_na() 
+  
+  #GT Table
+  top_preds_df %>% 
+    select(Beta) %>% 
+    gt::gt(groupname_col = "species", row_group_as_column = T) %>% 
+    gt::fmt_number(decimals = 2)
+}
+
+get_top_preds(betas[generalists])
+get_top_preds(betas[cliff_cave])
+get_top_preds(betas[tree])
+get_top_preds(betas[other])
 
 # Creating Plots ----------------------------------------------------------
 
@@ -137,4 +170,13 @@ other.block <- plot.preds(block.rast, other)
 ggsave(filename = "other_res.png", plot = other.block, path = here("Reports/SDM_Presentation/Figures"), width = 3024, height = 1964, units = "px")
 
 
-plot.preds(block.rast, "Parastrellus hesperus")
+
+for (i in names(block.rast)) {
+  ## Plot it
+  tmp <- plot.preds(block.rast, i)
+  
+  ## save_name
+  save_name <- paste(names(janitor::clean_names(block.rast[[i]])),".png", sep = "")
+
+  ggsave(filename = save_name, plot = tmp, path = here("Reports/SDM_Presentation/Figures/individual_maps/"), width = 3024, height = 1964, units = "px")
+}

@@ -117,8 +117,9 @@ master_wide <- as.data.frame(apply(master_wide, 2, unlist))
 
 ## Remove Duplicates
 master_wide <- master_wide %>% 
-  distinct() #There are no duplicates, but just to be sure
+  distinct() 
 
+#There are no duplicates, but just to be sure
 master_wide %>% 
   group_by(LocationName, year) %>% 
   summarise(n = n()) %>% 
