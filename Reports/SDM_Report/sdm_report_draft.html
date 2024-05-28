@@ -23,6 +23,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 /* CSS for citations */
 div.csl-bib-body { }
 div.csl-entry {
@@ -60,10 +94,37 @@ div.csl-indent {
 
 </head>
 
-<body class="fullcontent">
+<body>
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#background" id="toc-background" class="nav-link active" data-scroll-target="#background">Background</a></li>
+  <li><a href="#the-approach" id="toc-the-approach" class="nav-link" data-scroll-target="#the-approach">The Approach</a>
+  <ul class="collapse">
+  <li><a href="#why-use-maxent" id="toc-why-use-maxent" class="nav-link" data-scroll-target="#why-use-maxent">Why use MaxEnt?</a></li>
+  <li><a href="#the-data" id="toc-the-data" class="nav-link" data-scroll-target="#the-data">The Data</a>
+  <ul class="collapse">
+  <li><a href="#study-area" id="toc-study-area" class="nav-link" data-scroll-target="#study-area">Study Area</a></li>
+  <li><a href="#species-observations" id="toc-species-observations" class="nav-link" data-scroll-target="#species-observations">Species Observations</a></li>
+  </ul></li>
+  <li><a href="#running-the-maxent-model" id="toc-running-the-maxent-model" class="nav-link" data-scroll-target="#running-the-maxent-model">Running the MaxEnt Model</a></li>
+  </ul></li>
+  <li><a href="#viewing-and-interpreting-range-maps" id="toc-viewing-and-interpreting-range-maps" class="nav-link" data-scroll-target="#viewing-and-interpreting-range-maps">Viewing and Interpreting Range Maps</a></li>
+  <li><a href="#discussion-future-directions" id="toc-discussion-future-directions" class="nav-link" data-scroll-target="#discussion-future-directions">Discussion &amp; Future Directions</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  <li><a href="#sec-appendix" id="toc-sec-appendix" class="nav-link" data-scroll-target="#sec-appendix">Appendix</a>
+  <ul class="collapse">
+  <li><a href="#model-diagnostics" id="toc-model-diagnostics" class="nav-link" data-scroll-target="#model-diagnostics">Model Diagnostics</a></li>
+  <li><a href="#expanded-results" id="toc-expanded-results" class="nav-link" data-scroll-target="#expanded-results">Expanded Results</a></li>
+  <li><a href="#code-appendix" id="toc-code-appendix" class="nav-link" data-scroll-target="#code-appendix">Code Appendix</a></li>
+  </ul></li>
+  </ul>
+<div class="quarto-code-links"><h2>Code Links</h2><ul><li><a href="https://github.com/hawktre/BatHub_SDM.git"><i class="bi bi-link-45deg"></i>Project GitHub</a></li></ul></div></nav>
+</div>
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -116,51 +177,262 @@ div.csl-indent {
 
 <section id="background" class="level1">
 <h1>Background</h1>
-<p>The Northwestern Hub for Bat Population Research and Monitoring (Northwest Bat Hub) began efforts at annual summer occupancy surveys for the 15 endemic bat species to the Pacific Northwest in 2016 as a regional member of the North American Bat Monitoring Program (NABat). This effort has led to the collection of a robust species occurrence dataset–currently spanning eight years– which has contributed to national efforts to analyze population-level trends at the national level for certain species<span class="citation" data-cites="udell"><sup><a href="#ref-udell" role="doc-biblioref">1</a></sup></span>. At a regional level, the Northwest Bat Hub has also produced many publications influencing study design<span class="citation" data-cites="reichert2021 rodhouse2017"><sup><a href="#ref-reichert2021" role="doc-biblioref">2</a>,<a href="#ref-rodhouse2017" role="doc-biblioref">3</a></sup></span>, data analysis<span class="citation" data-cites="irvine2018"><sup><a href="#ref-irvine2018" role="doc-biblioref">4</a></sup></span>, and conservation management<span class="citation" data-cites="rodhouse2019 rodhouse2021"><sup><a href="#ref-rodhouse2019" role="doc-biblioref">5</a>,<a href="#ref-rodhouse2021" role="doc-biblioref">6</a></sup></span>.</p>
-<p>Perhaps one of the greatest challenges of this large-scale, regional monitoring effort is data management. With dozens of individuals across many partnering agencies completing surveys, the Northwest Bat Hub has invested significantly in survey standardization using mobile data collection technologies such as ArcGIS Collector Field Maps and Survey123. Standardization of these surveys has allowed the Bat Hub to build extensive data management protocols and programmatic data pipelines using the popular statistical software ‘R’. At the time of this report, these pipelines address the following needs:</p>
-<ul>
-<li><p>Site Metadata Quality Assurance and Control (QA/QC)</p></li>
-<li><p>Acoustic File ‘scrubbing’, attribution, and auto-classification using SonoBat Data Wizard</p></li>
-<li><p>Data preparation for the national NABat data upload, BatAMP, and the Bat Hub’s local metadata storage in a Microsoft Access Database (.accdb)</p></li>
-<li><p>Report generation for partner agencies of the Northwest Bat Hub</p></li>
-</ul>
-<p>Over time, these pipelines and protocols have greatly improved the Bat Hub’s efficiency in annually processing data collected in the field and providing feedback for partnering agencies. Currently, feedback and data insights are provided to partners in three forms: 1) vetted outputs of species occurrence for each sample unit falling under a particular agency’s management jurisdiction (<strong>Figure 1</strong>), 2) partner agency and Pacific Northwest regional annual NABat reports and 3) publication in academic journals using novel methodology derived by the Northwest Bat Hub and its contributors.</p>
-<div id="fig-dataviewer" class="quarto-figure quarto-figure-center quarto-float anchored" data-fig-align="center">
-<figure class="quarto-float quarto-float-fig figure">
-<div aria-describedby="fig-dataviewer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<a href="https://experience.arcgis.com/experience/13bd843b1eda4dbdac79419c5b1ba63e/page/Map-Page/"><img src="figures/data_viewer.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></a>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dataviewer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: The Bat Hub Data Viewer
-</figcaption>
-</figure>
-</div>
-<p>Data pipelines and tools like the Northwest Bat Hub Data Viewer help the Bat Hub to meet reporting requirements for its partners, and the Bat Hub’s publications have provided invaluable data insights–particularly for the Little Brown Bat (Myotis lucifugus) and the Hoary Bat (Lasiurus cinereus)<span class="citation" data-cites="rodhouse2019"><sup><a href="#ref-rodhouse2019" role="doc-biblioref">5</a></sup></span>. The statistical methodology used for these publications in many cases have been specifically designed with the NABat sampling strategy in mind, and inferences gleaned using these methods should not be ignored. It is possible, however, that other flexible modeling strategies could be built into the Bat Hub’s pre-existing data pipelines to leverage the Bat Hub’s annual monitoring efforts and give dynamic data insights to partners without the heavy lifting of the publication process. Furthermore, partners of the Northwest Bat Hub are still in need of updated range maps for many bat species of the pacific northwest.</p>
-<p>In this report, we will describe our approach to creating range maps for bat species in the three-state region of Oregon, Washington, and Idaho using the Maximum Entropy (MaxEnt) machine learning method. We then demonstrate how our approach can be flexibly implemented as a straight-forward extension to existing Bat Hub protocols. Finally, we discuss how collaborators might interpret and leverage model results in decision-making processes to support bat conservation.</p>
+<p>The Northwestern Hub for Bat Population Research and Monitoring (Northwest Bat Hub) began efforts at annual summer occupancy surveys for the 15 endemic bat species to the Pacific Northwest in 2016 as a regional member of the North American Bat Monitoring Program (NABat). This effort has led to the collection of a robust species occurrence dataset–currently spanning eight years–which has contributed to national efforts at analyzing population-level trends at the national level.<span class="citation" data-cites="udell"><sup><a href="#ref-udell" role="doc-biblioref">1</a></sup></span> At a regional level, the Northwest Bat Hub has also produced many publications influencing study design,<span class="citation" data-cites="reichert2021 rodhouse2017"><sup><a href="#ref-reichert2021" role="doc-biblioref">2</a>,<a href="#ref-rodhouse2017" role="doc-biblioref">3</a></sup></span> data analysis,<span class="citation" data-cites="irvine2018"><sup><a href="#ref-irvine2018" role="doc-biblioref">4</a></sup></span> and conservation management.<span class="citation" data-cites="rodhouse2019 rodhouse2021"><sup><a href="#ref-rodhouse2019" role="doc-biblioref">5</a>,<a href="#ref-rodhouse2021" role="doc-biblioref">6</a></sup></span></p>
+<p>Initial monitoring efforts began in Oregon but have since expanded to include partners in Washington (2018) and Idaho (2020). As a result, regional analyses have focused primarily on Oregon and Washington. The Northwest Bat Hub and it’s partners now have three years of vetted summer acoustic monitoring data which include Idaho, and are uniquely positioned to expand analyses to encompass that data.</p>
+<p>The NABat grid has been designed to account for species absence, and serves as the foundation for many analyses conducted using summer acoustic monitoring data.<span class="citation" data-cites="reichert2021"><sup><a href="#ref-reichert2021" role="doc-biblioref">2</a></sup></span> The Maximum Entropy (MaxEnt) machine learning method leverages pseudo-absence (aka “presence-only”) data to make prediction about species occurrence across a study area. MaxEnt does not provide a robust infrastructure for population trends across time, but does provide an approachable framework for producing region-wide range maps using the NABat summer acoustic monitoring data set.</p>
+<p>In this report, we will describe our approach to creating range maps for bat species in the three-state region of Oregon, Washington, and Idaho using the MaxEnt machine learning method. We then demonstrate how our approach can be flexibly implemented as a straight-forward extension to existing Bat Hub protocols. Finally, we discuss how collaborators might interpret and leverage model results in decision-making processes to support bat conservation.</p>
 </section>
 <section id="the-approach" class="level1">
 <h1>The Approach</h1>
 <section id="why-use-maxent" class="level2">
 <h2 class="anchored" data-anchor-id="why-use-maxent">Why use MaxEnt?</h2>
-<p>Species Distribution Models (SDMs) are a part of a growing field of spatiotemporal models that leverage advancements in Machine Learning (ML) and Artificial Intelligence (AI). The Maximum Entropy (MaxEnt)<span class="citation" data-cites="phillips2017a"><sup><a href="#ref-phillips2017a" role="doc-biblioref">7</a></sup></span> method has become particularly popular due to its ability to handle presence-only data (e.g.&nbsp;the data generated by NABat acoustic monitoring efforts) and its availability through open-source releases of the original java application<span class="citation" data-cites="phillipsc"><sup><a href="#ref-phillipsc" role="doc-biblioref">8</a></sup></span> and approximations in statistical modeling software ‘R’<span class="citation" data-cites="kass2021a"><sup><a href="#ref-kass2021a" role="doc-biblioref">9</a></sup></span>. We propose that we can leverage this openly available software to build a user-friendly extension of the Northwest Bat Hub’s data management pipeline that will efficiently provide visual data insights and summaries to its partners.</p>
-<p>Briefly, MaxEnt works to make predictions about the probability of species occurrence across a study area given a set of vetted observations and a set of rasterized explanatory variables, also termed <em>environmental covariates.</em> The spatial resolution of the resulting predictions is determined by the spatial resolution of the available environmental covariates. In the context of this report, the study are of interest is the three-state region of Oregon, Washington, and Idaho. Species observation records were obtained from the Northwest Bat Hub’s vetted acoustic monitoring records and environmental covariates (Table 1) were determined through literature review<span class="citation" data-cites="udell rodhouse2019 rodhouse2021"><sup><a href="#ref-udell" role="doc-biblioref">1</a>,<a href="#ref-rodhouse2019" role="doc-biblioref">5</a>,<a href="#ref-rodhouse2021" role="doc-biblioref">6</a></sup></span> and obtained from various sources. An in-depth and explanation and motivation for the use of MaxEnt for ecological modeling purposes can be found in Elith et al., 2011<span class="citation" data-cites="elith2011"><sup><a href="#ref-elith2011" role="doc-biblioref">10</a></sup></span>.</p>
+<p>Species Distribution Models (SDMs) are a part of a growing field of spatiotemporal models that leverage advancements in Machine Learning (ML) and Artificial Intelligence (AI). The Maximum Entropy (MaxEnt)<span class="citation" data-cites="phillips2017a"><sup><a href="#ref-phillips2017a" role="doc-biblioref">7</a></sup></span> method has become particularly popular due to its ability to handle presence-only data and its availability through open-source releases of the original java application<span class="citation" data-cites="phillipsc"><sup><a href="#ref-phillipsc" role="doc-biblioref">8</a></sup></span> and approximations in statistical modeling software ‘R’.<span class="citation" data-cites="kass2021a"><sup><a href="#ref-kass2021a" role="doc-biblioref">9</a></sup></span> We propose that we can leverage this openly available software to build a user-friendly extension of the Northwest Bat Hub’s data management pipeline that will efficiently provide visual data insights and summaries to its partners.</p>
+<p>Briefly, MaxEnt works to make predictions about the probability of species occurrence across a study area given a set of vetted observations and a set of rasterized explanatory variables, also termed <em>environmental covariates.</em> The spatial resolution of the resulting predictions is determined by the spatial resolution of the available environmental covariates. In the context of this report, the study area of interest is the three-state region of Oregon, Washington, and Idaho. Species observation records were obtained from the Northwest Bat Hub’s vetted acoustic monitoring records and environmental covariates (<a href="#tbl-covars" class="quarto-xref">Table&nbsp;1</a>) were determined through literature review.<span class="citation" data-cites="udell rodhouse2019 rodhouse2021"><sup><a href="#ref-udell" role="doc-biblioref">1</a>,<a href="#ref-rodhouse2019" role="doc-biblioref">5</a>,<a href="#ref-rodhouse2021" role="doc-biblioref">6</a></sup></span> An in-depth explanation and motivation for the use of MaxEnt for ecological modeling purposes can be found in Elith et al., 2011<span class="citation" data-cites="elith2011"><sup><a href="#ref-elith2011" role="doc-biblioref">10</a></sup></span>.</p>
+<div id="tbl-covars" class="quarto-float anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-covars-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Review of environmental covariates used previously within the NABat framework.
+</figcaption>
+<div aria-describedby="tbl-covars-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 37%">
+<col style="width: 28%">
+</colgroup>
+<tbody>
+<tr class="odd">
+<td><strong><em>Covariate Name</em></strong></td>
+<td><strong><em>Publication</em></strong></td>
+<td><strong><em>Source</em></strong></td>
+</tr>
+<tr class="even">
+<td>Annual mean precipitation</td>
+<td>Udell et. al., 2022</td>
+<td>WorldClim 2.0<span class="citation" data-cites="fick2017"><sup><a href="#ref-fick2017" role="doc-biblioref">11</a></sup></span></td>
+</tr>
+<tr class="odd">
+<td>Annual mean temperature</td>
+<td>Udell et. al., 2022; Rodhouse et. al., 2019</td>
+<td>WorldClim 2.0<span class="citation" data-cites="fick2017"><sup><a href="#ref-fick2017" role="doc-biblioref">11</a></sup></span></td>
+</tr>
+<tr class="even">
+<td>Percent forest cover</td>
+<td>Udell et. al., 2022; Rodhouse et. al., 2019</td>
+<td>National Land Cover Database<span class="citation" data-cites="dewitz"><sup><a href="#ref-dewitz" role="doc-biblioref">12</a></sup></span></td>
+</tr>
+<tr class="odd">
+<td>Percent water</td>
+<td>Udell et. al., 2022</td>
+<td>National Land Cover Database<span class="citation" data-cites="dewitz"><sup><a href="#ref-dewitz" role="doc-biblioref">12</a></sup></span></td>
+</tr>
+<tr class="even">
+<td>Percent wetland</td>
+<td>Udell et. al., 2022</td>
+<td>National Land Cover Database<span class="citation" data-cites="dewitz"><sup><a href="#ref-dewitz" role="doc-biblioref">12</a></sup></span></td>
+</tr>
+<tr class="odd">
+<td>Elevation</td>
+<td>Udell et. al., 2022; Rodhouse et. al., 2019</td>
+<td>National Elevation Dataset (NED)<span class="citation" data-cites="hollister2023"><sup><a href="#ref-hollister2023" role="doc-biblioref">13</a></sup></span></td>
+</tr>
+<tr class="even">
+<td>Percent Cliffs &amp; Canyon Cover</td>
+<td>Rodhouse et. al., 2019</td>
+<td>National Land Cover Database<span class="citation" data-cites="dewitz"><sup><a href="#ref-dewitz" role="doc-biblioref">12</a></sup></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
 </section>
 <section id="the-data" class="level2">
 <h2 class="anchored" data-anchor-id="the-data">The Data</h2>
-<p>To recreate this analysis, three files are required:</p>
+<p>To recreate this analysis, two components are required:</p>
 <ol type="1">
-<li></li>
+<li><p>Presence-only formatted species observations</p></li>
+<li><p>Rasterized environmental covariates covering the extent of the study area</p></li>
 </ol>
+<p>Here we will show examples of how these data should be formatted for analysis. Further details and code for formatting can be found in the <a href="https://github.com/hawktre/BatHub_SDM.git">github repository</a> for this project or in the <a href="#sec-appendix">appendix</a>.</p>
+<section id="study-area" class="level3">
+<h3 class="anchored" data-anchor-id="study-area">Study Area</h3>
+<p>First it is helpful to define our study area, which is the three-state region of Oregon, Washington, and Idaho surrounded by a 10 km buffer.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Load required libraries</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(tidyverse)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(here) <span class="co">#for relative pathnames</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(sf)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(usmap)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Get the OR, WA, ID outline for visualization </span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>us_states <span class="ot">&lt;-</span> <span class="fu">us_map</span>(<span class="at">regions =</span> <span class="st">"states"</span>, <span class="at">include =</span> <span class="fu">c</span>(<span class="st">"OR"</span>, <span class="st">"WA"</span>, <span class="st">"ID"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="st">'WGS84'</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Project to equal-area projection to add buffer and union (Albers Equal Area CONUS)</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>pnw <span class="ot">&lt;-</span> us_states <span class="sc">%&gt;%</span> </span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="fu">st_crs</span>(<span class="st">'EPSG: 5070'</span>))</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">#Add buffer and union and tansform back to wgs84</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>pnw <span class="ot">&lt;-</span> pnw <span class="sc">%&gt;%</span> </span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_make_valid</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_buffer</span>(<span class="dv">10000</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_union</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="at">crs =</span> <span class="st">"WGS84"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_sf</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_cast</span>()</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>()<span class="sc">+</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> pnw)<span class="sc">+</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="sdm_report_draft_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="species-observations" class="level3">
+<h3 class="anchored" data-anchor-id="species-observations">Species Observations</h3>
+<p>Assuming the user has access to the Northwest Bat Hub’s NABat Acoustic Monitoring Database, species occurrence records should be formatted as follows:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#read in the data</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">here</span>(<span class="st">"DataProcessed.nosync/SpeciesOccurrence/spp_occ_master.csv"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(dat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 19
+  LocationName  year Latitude Longitude  laci  lano  myev  epfu  myyu  myth
+  &lt;chr&gt;        &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 100037_SE1    2016     42.4     -122.     0     0     0     0     0     1
+2 100037_SE2    2016     42.4     -122.     1     0     1     0     0     0
+3 100038_NE1    2016     42.5     -122.     0     0     1     0     0     0
+4 100038_NW1    2016     42.5     -122.     1     0     0     0     0     0
+5 100038_NW2    2016     42.4     -122.     0     1     1     1     0     0
+6 100041_NE1    2016     42.5     -121.     0     1     0     0     0     0
+# ℹ 9 more variables: myci &lt;dbl&gt;, myvo &lt;dbl&gt;, tabr &lt;dbl&gt;, anpa &lt;dbl&gt;,
+#   pahe &lt;dbl&gt;, euma &lt;dbl&gt;, myca &lt;dbl&gt;, mylu &lt;dbl&gt;, coto &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>The resulting data frame (or tibble) contains one row for each NABat survey site (<strong>LocationName</strong>), and each year that it was surveyed (<strong>year</strong>). <strong>Latitude</strong> and <strong>Longitude</strong> denote the coordinates for each survey site in decimal degrees (WGS84). The remaining columns are named by the four-letter code for each species (e.g.&nbsp;<em>Lasiurus cinereus</em> (laci), <em>Lasionycteris noctivagans</em> (lano), <em>Myotis evotis</em> (myev)) and denote vetted species occurrence for that year (1 = occurrence; 0 = did not occur).</p>
+<p>We can visualize point-locations over time using the <code>sf</code> and <code>ggplot</code> packages:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Need Long-format observations for plotting</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>dat_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(dat, <span class="at">cols =</span> <span class="dv">5</span><span class="sc">:</span><span class="fu">ncol</span>(dat), <span class="at">names_to =</span> <span class="st">"spp"</span>, <span class="at">values_to =</span> <span class="st">"presence"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(presence <span class="sc">&gt;</span> <span class="dv">0</span>) </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Convert points to SF object</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>spp_occ <span class="ot">&lt;-</span> <span class="fu">st_as_sf</span>(dat_long, <span class="at">coords =</span> <span class="fu">c</span>(<span class="st">"Longitude"</span>, <span class="st">"Latitude"</span>), <span class="at">crs =</span> <span class="st">"WGS84"</span>) </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="do">## Crop out points outside of the study area</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>spp_occ <span class="ot">&lt;-</span> <span class="fu">st_crop</span>(spp_occ, pnw)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="do">## Overall Plot</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> us_states)<span class="sc">+</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> spp_occ, <span class="fu">aes</span>(<span class="at">col =</span> <span class="fu">as.factor</span>(year)))<span class="sc">+</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>year, <span class="at">ncol =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">color =</span> <span class="st">"Year"</span>,</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Species Occurrences 2016-2022"</span>)<span class="sc">+</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>,</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.ticks.y =</span> <span class="fu">element_blank</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="sdm_report_draft_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Practically, MaxEnt only allows one observation for each site. Data have been provided by year in case the user wished to only look at a specific year. Otherwise, results will need to be aggregated across years by taking the maximum value for each species across all years. If this step is not completed, MaxEnt will select the first by default and drop duplicates.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dat_overall <span class="ot">&lt;-</span> dat <span class="sc">%&gt;%</span> </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(LocationName) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">reframe</span>(<span class="at">Latitude =</span> Latitude,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>            <span class="at">Longitude =</span> Longitude,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>            <span class="at">laci =</span> <span class="fu">max</span>(laci),</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">lano =</span> <span class="fu">max</span>(lano),</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>            <span class="at">myev =</span> <span class="fu">max</span>(myev),</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">epfu =</span> <span class="fu">max</span>(epfu),</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">myyu =</span> <span class="fu">max</span>(myyu),</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>            <span class="at">myth =</span> <span class="fu">max</span>(myth),</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>            <span class="at">myci =</span> <span class="fu">max</span>(myci),</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>            <span class="at">myvo =</span> <span class="fu">max</span>(myvo),</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>            <span class="at">tabr =</span> <span class="fu">max</span>(tabr),</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>            <span class="at">anpa =</span> <span class="fu">max</span>(anpa),</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">pahe =</span> <span class="fu">max</span>(pahe),</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>            <span class="at">euma =</span> <span class="fu">max</span>(euma),</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>            <span class="at">myca =</span> <span class="fu">max</span>(myca),</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>            <span class="at">mylu =</span> <span class="fu">max</span>(mylu),</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>            <span class="at">coto =</span> <span class="fu">max</span>(coto)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(dat_overall)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 18
+  LocationName Latitude Longitude  laci  lano  myev  epfu  myyu  myth  myci
+  &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 100037_SE1       42.4     -122.     0     0     0     0     0     1     0
+2 100037_SE2       42.4     -122.     1     0     1     0     0     0     0
+3 100038_NE1       42.5     -122.     0     0     1     0     0     0     1
+4 100038_NW1       42.5     -122.     1     0     0     0     0     0     0
+5 100038_NW2       42.4     -122.     0     1     1     1     0     0     0
+6 100041_NE1       42.5     -121.     0     1     1     0     0     0     0
+# ℹ 8 more variables: myvo &lt;dbl&gt;, tabr &lt;dbl&gt;, anpa &lt;dbl&gt;, pahe &lt;dbl&gt;,
+#   euma &lt;dbl&gt;, myca &lt;dbl&gt;, mylu &lt;dbl&gt;, coto &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</section>
 </section>
 <section id="running-the-maxent-model" class="level2">
 <h2 class="anchored" data-anchor-id="running-the-maxent-model">Running the MaxEnt Model</h2>
+<ul>
+<li><p>Briefly give some details about model parameters (RM, feature types, etc…)</p></li>
+<li><p>Code for serializing the maxent model.</p></li>
+</ul>
 </section>
 </section>
 <section id="viewing-and-interpreting-range-maps" class="level1">
 <h1>Viewing and Interpreting Range Maps</h1>
+<ul>
+<li><p>Figure containing all range maps</p></li>
+<li><p>Figure for each range map may be found in the appendix</p></li>
+<li><p>Brief explanation of the definition of ‘occurrence probability’</p></li>
+<li><p>Where can you find these results?</p></li>
+</ul>
 </section>
-<section id="future-directions" class="level1">
-<h1>Future Directions</h1>
+<section id="discussion-future-directions" class="level1">
+<h1>Discussion &amp; Future Directions</h1>
+<ul>
+<li><p>What are some of the drawbacks of MaxEnt?</p></li>
+<li><p>What are other questions the bat hub is interested in answering?</p></li>
+<li><p>How may these questions be answered using trend analysis?</p></li>
+</ul>
 </section>
 <section id="references" class="level1">
 <h1>References</h1>
@@ -195,10 +467,28 @@ Figure&nbsp;1: The Bat Hub Data Viewer
 <div id="ref-elith2011" class="csl-entry" role="listitem">
 <div class="csl-left-margin">10. </div><div class="csl-right-inline">Elith, J. <em>et al.</em> <a href="https://doi.org/10.1111/j.1472-4642.2010.00725.x">A statistical explanation of MaxEnt for ecologists</a>. <em>Diversity and Distributions</em> <strong>17</strong>, 43–57 (2011).</div>
 </div>
+<div id="ref-fick2017" class="csl-entry" role="listitem">
+<div class="csl-left-margin">11. </div><div class="csl-right-inline">Fick, S. E. &amp; Hijmans, R. J. <a href="https://doi.org/10.1002/joc.5086">WorldClim 2: new 1<span>-</span>km spatial resolution climate surfaces for global land areas</a>. <em>International Journal of Climatology</em> <strong>37</strong>, 4302–4315 (2017).</div>
+</div>
+<div id="ref-dewitz" class="csl-entry" role="listitem">
+<div class="csl-left-margin">12. </div><div class="csl-right-inline">Dewitz, J. National land cover database (NLCD) 2019 products. doi:<a href="https://doi.org/10.5066/P9KZCM54">10.5066/P9KZCM54</a>.</div>
+</div>
+<div id="ref-hollister2023" class="csl-entry" role="listitem">
+<div class="csl-left-margin">13. </div><div class="csl-right-inline">Hollister, J. <em>et al.</em> <em><a href="https://cran.r-project.org/web/packages/elevatr/index.html">Elevatr: Access elevation data from various APIs</a></em>. (2023).</div>
+</div>
 </div>
 </section>
-<section id="appendix" class="level1">
+<section id="sec-appendix" class="level1">
 <h1>Appendix</h1>
+<section id="model-diagnostics" class="level2">
+<h2 class="anchored" data-anchor-id="model-diagnostics">Model Diagnostics</h2>
+</section>
+<section id="expanded-results" class="level2">
+<h2 class="anchored" data-anchor-id="expanded-results">Expanded Results</h2>
+</section>
+<section id="code-appendix" class="level2">
+<h2 class="anchored" data-anchor-id="code-appendix">Code Appendix</h2>
+</section>
 </section>
 
 </main>
