@@ -9,43 +9,55 @@ author:
   - name: Tom Rodhouse
     affiliation: National Park Service
     degrees: PhD
+date: last-modified
 format: html
 toc: true
 bibliography: references.bib
 csl: nature.csl
 link-citations: true
-code-fold: true
 execute: 
   warning: false
 code-links:
-  - text: Project GitHub
+  - text: GitHub Repository
     href: https://github.com/hawktre/BatHub_SDM.git
+page-layout: full
+embed-resources: true
 ---
 
-```{r}
+# Executive Summary
 
-```
+The Northwestern Bat Hub for Population Monitoring and Research (Northwest Bat Hub) has collaborated with governmental partners to collect a robust summer acoustic monitoring dataset for the 15 bat species found in the Pacific Northwest, beginning in 2016. Here, we demonstrate how we can leverage these data to create high-resolution (\~1km^2^) range maps covering Oregon, Washington, and Idaho using the popular Maximum Entropy (MaxEnt) approach in 'R'. Results show well-calibrated models with results that are consistent with previously published literature in Oregon and Washington, and serve as one of the first attempts at creating predictive maps for all common Northwestern Bat Species in the state of Idaho. While MaxEnt analyses are not commonly published in isolation, this exercise proves as useful tool to glean valuable information regarding habitat suitability for the bats of the Pacific Northwest and can aid in conservation management and planning in conjunction with the domain expertise of regional biologists.
 
 # Background
 
-The Northwestern Hub for Bat Population Research and Monitoring (Northwest Bat Hub) began efforts at annual summer occupancy surveys for the 15 endemic bat species to the Pacific Northwest in 2016 as a regional member of the North American Bat Monitoring Program (NABat). This effort has led to the collection of a robust species occurrence dataset–currently spanning eight years–which has contributed to national efforts at analyzing population-level trends at the national level. [@udell] At a regional level, the Northwest Bat Hub has also produced many publications influencing study design,[@reichert2021; @rodhouse2017] data analysis, [@irvine2018] and conservation management.[@rodhouse2019; @rodhouse2021]
+The Northwestern Hub for Bat Population Research and Monitoring (Northwest Bat Hub) began efforts at annual summer occupancy surveys for the 15 bat species found in the Pacific Northwest in 2016 as a regional member of the North American Bat Monitoring Program (NABat). This effort has led to the collection of a robust species occurrence dataset, currently spanning eight years, which has contributed to national efforts at analyzing population-level trends at the national level. [@udell] At a regional level, the Northwest Bat Hub has also produced many publications influencing study design,[@reichert2021; @rodhouse2017] data analysis, [@irvine2018] and conservation management.[@rodhouse2019; @rodhouse2021]
 
 Initial monitoring efforts began in Oregon but have since expanded to include partners in Washington (2018) and Idaho (2020). As a result, regional analyses have focused primarily on Oregon and Washington. The Northwest Bat Hub and it's partners now have three years of vetted summer acoustic monitoring data which include Idaho, and are uniquely positioned to expand analyses to encompass that data.
 
 The NABat grid has been designed to account for species absence, and serves as the foundation for many analyses conducted using summer acoustic monitoring data. @reichert2021 The Maximum Entropy (MaxEnt) machine learning method leverages pseudo-absence (aka "presence-only") data to make prediction about species occurrence across a study area. MaxEnt does not provide a robust infrastructure for population trends across time, but does provide an approachable framework for producing region-wide range maps using the NABat summer acoustic monitoring data set.
 
-In this report, we will describe our approach to creating range maps for bat species in the three-state region of Oregon, Washington, and Idaho using the MaxEnt machine learning method. We then demonstrate how our approach can be flexibly implemented as a straight-forward extension to existing Bat Hub protocols. Finally, we discuss how collaborators might interpret and leverage model results in decision-making processes to support bat conservation.
+In this report, we will describe our approach to creating range maps for 14 bat species in the three-state region of Oregon, Washington, and Idaho using the MaxEnt machine learning method. We then demonstrate how our approach can be flexibly implemented as a straight-forward extension to existing Bat Hub protocols. Finally, we discuss how collaborators might interpret and leverage model results in decision-making processes to support bat conservation.
 
-# The Approach
+# Methods
 
 ## Why use MaxEnt?
 
-Species Distribution Models (SDMs) are a part of a growing field of spatiotemporal models that leverage advancements in Machine Learning (ML) and Artificial Intelligence (AI). The Maximum Entropy (MaxEnt) @phillips2017a method has become particularly popular due to its ability to handle presence-only data and its availability through open-source releases of the original java application @phillipsc and approximations in statistical modeling software ‘R’. @kass2021a We propose that we can leverage this openly available software to build a user-friendly extension of the Northwest Bat Hub’s data management pipeline that will efficiently provide visual data insights and summaries to its partners.
+Species Distribution Models (SDMs) are a part of a growing field of spatiotemporal models that leverage advancements in Machine Learning (ML) and Artificial Intelligence (AI). The Maximum Entropy (MaxEnt) @phillips2017a method has become particularly popular due to its ability to handle presence-only data and its availability through open-source releases of the original java application @phillipsc and approximations in statistical modeling software ‘R’. @kass2021a
 
-Briefly, MaxEnt works to make predictions about the probability of species occurrence across a study area given a set of vetted observations and a set of rasterized explanatory variables, also termed *environmental covariates.* The spatial resolution of the resulting predictions is determined by the spatial resolution of the available environmental covariates. In the context of this report, the study area of interest is the three-state region of Oregon, Washington, and Idaho. Species observation records were obtained from the Northwest Bat Hub's vetted acoustic monitoring records and environmental covariates (@tbl-covars) were determined through literature review.[@udell; @rodhouse2019; @rodhouse2021] An in-depth explanation and motivation for the use of MaxEnt for ecological modeling purposes can be found in Elith et al., 2011 @elith2011.
+Briefly, MaxEnt works to make predictions about the probability of species occurrence across a study area given a set of vetted observations and a set of rasterized explanatory variables, also termed *environmental covariates.* The spatial resolution of the resulting predictions is determined by the spatial resolution of the available environmental covariates. In the context of this report, the study area of interest is the three-state region of Oregon, Washington, and Idaho. The spatial resolution of the environmental covariate rasters (i.e. the unit of prediction) is \~1km^2^. Species observation records were obtained from the Northwest Bat Hub's vetted acoustic monitoring records and environmental covariates (@tbl-covars) were determined through literature review.[@udell; @rodhouse2019; @rodhouse2021] An in-depth explanation and motivation for the use of MaxEnt for ecological modeling purposes can be found in Elith et al., 2011. @elith2011
+
+## The Data
+
+To recreate this analysis, three components are required:
+
+1.  The study area
+
+2.  Presence-only formatted species observations
+
+3.  Rasterized environmental covariates covering the extent of the study area (@tbl-covars)
 
 |                               |                                             |                                                 |
-|---------------------------|------------------------------|-----------------------|
+|------------------|--------------------------|----------------------------|
 | ***Covariate Name***          | ***Publication***                           | ***Source***                                    |
 | Annual mean precipitation     | Udell et. al., 2022                         | WorldClim 2.0 @fick2017                         |
 | Annual mean temperature       | Udell et. al., 2022; Rodhouse et. al., 2019 | WorldClim 2.0 @fick2017                         |
@@ -53,35 +65,31 @@ Briefly, MaxEnt works to make predictions about the probability of species occur
 | Percent water                 | Udell et. al., 2022                         | National Land Cover Database @dewitz            |
 | Percent wetland               | Udell et. al., 2022                         | National Land Cover Database @dewitz            |
 | Elevation                     | Udell et. al., 2022; Rodhouse et. al., 2019 | National Elevation Dataset (NED) @hollister2023 |
-| Percent Cliffs & Canyon Cover | Rodhouse et. al., 2019                      | National Land Cover Database @dewitz            |
+| Percent Cliffs & Canyon Cover | Rodhouse et. al., 2019                      | Landfire GAP @rollins2009                       |
 
-: Review of environmental covariates used previously within the NABat framework. {#tbl-covars}
+: Review of environmental covariates used previously within the NABat framework, the publication(s) they were used in, and the data source. {#tbl-covars}
 
-## The Data
-
-To recreate this analysis, two components are required:
-
-1.  Presence-only formatted species observations
-
-2.  Rasterized environmental covariates covering the extent of the study area
-
-Here we will show examples of how these data should be formatted for analysis. Further details and code for formatting can be found in the [github repository](https://github.com/hawktre/BatHub_SDM.git) for this project or in the [appendix].
+Here we will show key code and examples for how these data should be formatted before analysis with MaxEnt. Further details and code for formatting can be found in the [github repository](https://github.com/hawktre/BatHub_SDM.git) for this project.
 
 ### Study Area
 
-First it is helpful to define our study area, which is the three-state region of Oregon, Washington, and Idaho surrounded by a 10 km buffer.
+First it is helpful to define our study area, which is the three-state region of Oregon, Washington, and Idaho surrounded by a 10 km buffer (@fig-studyarea).
 
 ```{r}
 #| output: false
 #| warning: false
 #Load required libraries
 require(tidyverse)
+require(tidyterra)
 require(here) #for relative pathnames
 require(sf)
 require(usmap)
+require(terra)
 ```
 
 ```{r}
+#| label: fig-studyarea
+#| fig-cap: "The overall study area covering Oregon, Washington, and Idaho with a 10km buffer."
 #Get the OR, WA, ID outline for visualization 
 us_states <- us_map(regions = "states", include = c("OR", "WA", "ID")) %>% 
   st_transform(crs = 'WGS84')
@@ -121,11 +129,13 @@ head(dat)
 
 The resulting data frame (or tibble) contains one row for each NABat survey site (**LocationName**), and each year that it was surveyed (**year**). **Latitude** and **Longitude** denote the coordinates for each survey site in decimal degrees (WGS84). The remaining columns are named by the four-letter code for each species (e.g. *Lasiurus cinereus* (laci), *Lasionycteris noctivagans* (lano), *Myotis evotis* (myev)) and denote vetted species occurrence for that year (1 = occurrence; 0 = did not occur).
 
-We can visualize point-locations over time using the `sf` and `ggplot` packages:
+We can visualize point-locations over time using the `sf` and `ggplot` packages as in @fig-occs.
 
 ```{r}
 #| fig-width: 10
 #| fig-height: 8
+#| label: fig-occs
+#| fig-cap: "NABat summer monitoring sites across the study area by year."
 #Need Long-format observations for plotting
 dat_long <- pivot_longer(dat, cols = 5:ncol(dat), names_to = "spp", values_to = "presence") %>% 
   filter(presence > 0) 
@@ -150,7 +160,7 @@ ggplot() +
         axis.ticks.y = element_blank())
 ```
 
-Practically, MaxEnt only allows one observation for each site. Data have been provided by year in case the user wished to only look at a specific year. Otherwise, results will need to be aggregated across years by taking the maximum value for each species across all years. If this step is not completed, MaxEnt will select the first by default and drop duplicates.
+Practically, MaxEnt only allows one observation for each site. Data have been provided by year in case the user wished to only look at a specific year. Otherwise, results will need to be aggregated across years by taking the maximum value for each species across all years. If this step is not completed, MaxEnt will select the first by default and drop the following ones.
 
 ```{r}
 dat_overall <- dat %>% 
@@ -177,43 +187,414 @@ dat_overall <- dat %>%
 head(dat_overall)
 ```
 
-In the resulting data frame (or tibble), the column for each species serve as an indicator for whether that species has *ever* been observed at that site (2016-2022).
+In the resulting data frame (or tibble), the column for each species serves as an indicator for whether that species has *ever* been observed at that site (2016-2022).
 
 ### Environmental Covariates
 
+The environmental covariates used in this analysis are displayed in @tbl-covars, along with other publications where they have been used and their sources for download. `geodata`, `FedData` @bocinsky2024, and `elevatr` @hollister2023 are nifty R packages for accessing some of these covariates programmatically. All data sets may also be downloaded as .tiff files directly from the source.
+
+#### Preparing Covariates
+
+Once rasterized covariates are obtained, they will need to be cropped and masked to fit the study area. Sample code is provided below.
+
+```{r}
+#| echo: true
+#| eval: false
+
+# The following code assumes you have executed the code above and have a shapefile of the study region (pnw in the code above)
+
+# Function for projecting, cropping, and resampling -----------------------
+crop_mask <- function(var, reg){
+  #Convert to terra format if not already
+  if (class(var) != "SpatRaster"){
+    var <- terra::rast(var)
+  }
+  
+  #Ensure Coordinate System is WGS84
+  var <- terra::project(var, "epsg:4326", threads = T)
+  
+  #Crop and Mask variable to region
+  crp <- crop(var, extent(reg))
+  msk <- mask(crp, reg)
+  
+  #Plot result to make sure it is correct
+  plot(msk)
+  
+  #Return the result
+  return(msk)
+}
+```
+
+Environmental covariates also need to be resampled to share the same resolution (i.e. pixel size) so that values for each covariate are assigned to the same pixel. The resolution may be chosen by the user, but it is advisable to aggregate to the resolution of the **coarsest** layer (i.e. the layer with the largest pixel size). In this case, the coarsest layers are the WorldClim 2.0 climactic covariates—annual mean precipitation and temperature (30 arc-seconds or approx. 1km^2^). Aggregation techniques for each covariate are provided in @tbl-resample.
+
+| Covariate Name            | Original Resolution       | Resampling Strategy |
+|--------------------------|--------------------------|--------------------|
+| Annual mean precipitation | 30 arc seconds (\~1km^2^) | N/A                 |
+| Annual mean temperature   | 30 arc seconds (\~1km^2^) | N/A                 |
+| Forest Cover (%)          | 30 m^2^                   | Mean                |
+| Water (%)                 | 30 m^2^                   | Mean                |
+| Wetland (%)               | 30 m^2^                   | Mean                |
+| Cliffs & Canyons (%)      | 30 m^2^                   | Mean                |
+| Elevation (m)             | 30 m^2^                   | Maximum             |
+
+: Resampling strategies for each environmental covariates. Land cover covariates take on a value of 0 or 1. Taking the mean of these values gives the proportion of the pixel covered by that land cover type. {#tbl-resample}
+
+Sample code for resampling all layers can be found bellow. This code assumes that you have a named list of your cropped covariates called "covars". Once all rasters share the same resolution and projection, they can be stored in a `terra::SpatRaster` and written to a local directory.
+
+```{r}
+#| echo: true
+#| eval: false
+for (i in 2:length(covars)) {
+  print(names(covars[i]))
+  
+  ## Resample ergo using mode because categorical variable
+  if (names(covars[i]) == "elev") {
+  
+    covars[[i]] <- terra::resample(covars[[i]], 
+                                   covars[["tmp_precip"]], 
+                                   threads = T, method = "max")
+    
+  }
+  
+  else{
+  #Resample all rasters to have the same resolution and extent as tmp_precip
+  covars[[i]] <- terra::resample(covars[[i]], 
+                                 covars[["tmp_precip"]], 
+                                 threads = T, method = "average")
+  }
+  
+}
+
+covars_stack <- rast(covars)
+
+writeRaster(covars_stack, here("your/path/env_covars.tif"), overwrite = T)
+```
+
+It is good practice to review your environmental covariates once completing this process to ensure they have maintained integrity through this process. Visualizations of the environmental covariates may be found in @fig-covars.
+
+```{r}
+#| eval: true
+#| label: fig-covars
+#| fig-cap: "Rasters for each included environmentl covariate. Land cover covariates are to be interpreted as the proportion of a given pixel occupied by that land cover type."
+
+require(viridis)
+
+covars_stack <- rast(here("DataProcessed.nosync/Covariates/env_covars.tif")) 
+
+covars_stack <- covars_stack %>% dplyr::select(-c("Physiographic Diversity"))
+
+plot(covars_stack, col = viridis::viridis(20))
+```
+
+Once environmental covariates are stored in a single object, we need to separate occurrence records by species and extract environmental covariate values for each survey site.
+
+```{r}
+#| echo: true
+#| eval: false
+
+# Create results vector for each species -------------------------------
+require(janitor)
+## rename our data frame to something more identifiable
+spp_occ <- dat_overall
+
+## Define all bats (not tabr)
+possible_bats <- c("laci",
+                   "lano",
+                   "myev",
+                   "epfu",
+                   "myyu",
+                   "myth",
+                   "myci",
+                   "myvo",
+                   "tabr",
+                   "anpa",
+                   "pahe",
+                   "euma",
+                   "myca",
+                   "mylu",
+                   "coto")
+## Create an empty vector to store results
+spp_list <- list()
+
+## Create the outcome for each species
+for (i in possible_bats) {
+  tmp_names <- c("Latitude", "Longitude", i)
+  
+  tmp <- spp_occ[,names(spp_occ) %in% tmp_names]
+  
+  spp_list[[i]] <- tmp %>%
+    filter(tmp[i] > 0) %>% 
+    select(-c(i))
+}
+
+# Convert spp_occ to sf and extract points --------------------------------------------
+
+spat_extract <- function(occs){
+  ## Converting spp_occ data frame to spatial object
+  spp_spat <- st_as_sf(occs, coords = c("Longitude", "Latitude"), crs = "WGS84")
+
+  ## Crop out Northern CA Points
+  spp_crop <- st_crop(spp_spat, pnw) %>% st_coordinates() %>% as.data.frame()
+  
+  # Extract environemental covariates 
+  spp_covs <- bind_cols(spp_crop, terra::extract(covars, spp_crop, bind = T) %>% as.data.frame())
+  
+  return(spp_covs)
+}
+
+## Extract covariate values for all spp matrices and clean up names
+spp_mats <- lapply(spp_list, spat_extract) %>% lapply(., janitor::clean_names)
+```
+
+The resulting list should contain a data frame of occurrence records and environmental covariates for each species. Below is an example for *Lasiurus cinereus* (laci).
+
+```{r}
+#| echo: false
+#| eval: true
+
+require(gt)
+
+spp_mats<- readRDS(here("DataProcessed.nosync/SpeciesOccurrence/spp_occ_mats.rds"))
+
+head(spp_mats[["laci"]]) %>% gt::gt() %>% gt::fmt_number(decimals = 2)
+```
+
 ## Running the MaxEnt Model
 
--   Briefly give some details about model parameters (RM, feature types, etc...)
+There are several 'R' packages with implementations of MaxEnt. One that is especially accessible is the implementation provided by `ENMeval`. @kass2021 The `ENMeval` package has the ability to iteratively fit MaxEnt models across a range of values for the **regularization multiplier (RM)** and **feature classes**, the primary model tuning parameters. The regularization multiplier penalizes model complexity (higher values of RM favor simpler models) and feature classes allow the model to explore non-linear relationships (e.g. quadratic, hinge, threshold) between the response and explanatory variables.
 
--   Code for serializing the maxent model.
+Another major advantage of `ENMeval` is its built-in functionality for generating and partitioning background data. Simply put, background points (or pseudo-absence points) are used to compare the probability distribution of habitat—as characterized by our environmental covariates— across the entire study area to that of the available habitat at occurrence locations, which generates MaxEnt's raw output. The raw output then undergoes a logistic transformation so that it may be interpreted as *probability of occurrence*. For more information about why we need background points and partitioning strategies, please see [Kass et al., 2021](https://jamiemkass.github.io/ENMeval/articles/ENMeval-2.0-vignette.html#eval). Here, we use the "spatial block" partitioning strategy.
 
-# Viewing and Interpreting Range Maps
+The following code can be used to generate and partition background points.
 
--   Figure containing all range maps
+```{r}
+#| echo: true
+#| eval: false
 
--   Figure for each range map may be found in the appendix
+require(ENMeval)
+# Background Points -------------------------------------------------------
+## We are going to do something with a random component, so we set the seed for reproducibility
+set.seed(123)
 
--   Brief explanation of the definition of 'occurrence probability'
+## sample background points and convert to sf object
+bg <- st_as_sf(randomPoints(covars, n = 10000) %>% as.data.frame(), coords = c('x', 'y'), crs = "WGS84")
 
--   Where can you find these results?
+## extract covariate values for those points
+envs.bg <- terra::extract(covars, bg, bind = T) %>% st_as_sf() 
+
+## Create dataframe
+envs.bg.df <- bind_cols(st_coordinates(envs.bg), as.data.frame(envs.bg)) %>% clean_names() %>% select(-geometry)
+
+
+# Partitioning ------------------------------------------------------------
+
+block.partitions <- lapply(spp_mats, function(x) {get.block(occs = x, bg = envs.bg.df, orientation = "lat_lon")})
+```
+
+We now have all of the required piece of information to fit the MaxEnt model:
+
+1.  Species occurrence records
+2.  Environmental covariates
+3.  Background (pseudo-absence) data
+4.  Partitions for model fitting
+
+The following code can be used to fit the model for all 14 bat species of interest.
+
+```{r}
+#| echo: true
+#| eval: false
+
+# Make a function for running maxent --------------------------------------
+maxnet.fit <- function(occs, envs, bg, partitions){
+  
+  #Select only lat and long for points
+  occs <- occs %>% select(x, y)
+  bg <- bg %>% select(x, y)
+
+  #Convert covariates to raster stack
+  covars_stack <- raster::stack(envs)
+  
+  print(names(covars_stack))
+
+
+  #run maxnet
+  
+  res <- ENMevaluate(occs = occs, envs = covars_stack, bg = bg,
+              partitions = "user", user.grp = partitions,
+              tune.args = list(fc = c("L", "LQ", "LQH"), rm = 1:5),
+              algorithm = "maxnet", parallel = T)
+
+  return(res)  
+}
+
+
+# Run enmeval  ------------------------------------------------------------
+
+### WARNING ###
+#Takes several hours to run. Benefits of parallelization may vary based on your hardware#
+block.res <- mapply(function(x, y){maxnet.fit(occs = x, envs = covars, bg = envs.bg.df, partitions = y)},
+                    x = spp_mats, y = block.partitions)
+
+# saving the resulting object as a '.rds' file will save you from having to re-run the above code. Results can be explored in another script. 
+saveRDS(block.res, here("your/save/path.rds"))
+```
+
+# Results
+
+Once models have been fit across the specified range of tuning parameters, we will want to find the one which performs the best. There are many ways to define a best-performing model, but the authors of `ENMeval` recommend to select the model with the lowest Omission Rate at the Minimum Training Presence Threshold (OR.MTP), followed by higher Area Under the Receiver Operating Characteristic Curve (AUC-ROC) to break ties. To learn more about these criteria, please review [Muscarella et al. 2014](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.12261). @muscarella2014 For the purpose of this report, it suffices to say that these metrics assess the tendency for overfitting. Lower OR.MTP is better (close to 0 is ideal), and higher ROC-AUC is better. An example of how to review model diagnostics may be found in the [appendix](#sec-appendix).
+
+```{r}
+#| echo: true
+#| eval: false
+
+# Retrieve best-fitting models by ENMeval 2.0 Criteria
+get.res <- function(mods){
+  #get generic results object from ENMeval
+  res <- eval.results(mods)
+  #Get the object with lowest ommission rate and higher AUC to break ties
+  opt.seq <- res %>% 
+    filter(or.10p.avg == min(or.10p.avg)) %>% 
+    filter(auc.val.avg == max(auc.val.avg))
+  
+  return(opt.seq)
+}
+
+best.mods.block <- lapply(block.res, get.res)
+
+#Create rasters for selected best models ---------------------------------
+kmeans.rast <- rast()
+
+for (i in 1:length(all.res)) {
+  #Turn predictions into raster and add them to our terra spatraster
+  terra::add(block.rast) <- rast(block.res[[i]]@predictions[[best.mods.block[[i]]$tune.args]])
+  
+}
+
+## fix the names of the rasters
+names(block.rast) <- names(block.res)
+
+```
+
+Once we have selected the best-performing model for each species and created a raster of the resulting predictions across the study area, we may review range maps for each species (@fig-results).
+
+```{r}
+#| fig-height: 8
+#| fig-width: 10
+#| label: fig-results
+#| fig-cap: "Model predictions across the study area with cool colors (blue) representing a low probability of presence and warm colors (yellow) representing a high probability of presence."
+results_rast <- rast(here("DataProcessed.nosync/ModResults/all_blockres.tiff"))
+
+ggplot()+
+  geom_spatraster(data = results_rast)+
+  facet_wrap(~lyr)+
+  scale_fill_viridis_c(na.value = "transparent")+
+  labs(fill = "Presence Prob.")+
+  theme_minimal()+
+  theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.ticks.y = element_blank(),
+        legend.position = "bottom")
+```
+
+Interpreting the range map for each species will require closer examination and enlarged versions can be found in the [Appendix](#sec-appendix). The MaxEnt authors argue that each raster pixel is to be interpreted as a probability of presence. This interpretation is debated in the literature and requires that the model meets a somewhat rigorous set of assumptions. These values are not true probabilities and it is perhaps more intuitive to interpret them as relative habitat suitability. For example, a pixel value of 0.8 indicates that the habitat within that pixel (\~1km^2^) is more suitable than 80% of the other locations within the study area (Oregon, Washington, and Idaho). Using this less-strict interpretation allows users with a strong working knowledge of these species' ecology to discriminate between model results.
 
 # Discussion & Future Directions
 
--   What are some of the drawbacks of MaxEnt?
+With this modeling exercise, we leveraged the summer acoustic monitoring data collected by the Northwest Bat Hub and its partners from 2016-2022 to create range maps for 14 species of bats commonly found in the Pacific Northwest. Notably, model predictions in Oregon and Washington were largely consistent with those previously published by the bat hub and its partners. @rodhouse2019 While previous publications have published occupancy or range maps for select species in the Pacific Northwest region, [@udell; @rodhouse2019; @rodhouse2021] this is perhaps one of the most comprehensive sets to date—particularly for Idaho.
 
--   What are other questions the bat hub is interested in answering?
+Significant limitations of this study include the inability of the model to assess temporal population trends or the presence of any spatiotemporal autocorrelation. This is a common critique and shortcoming of MaxEnt that is well understood. MaxEnt models are not commonly published in isolation for this reason. Nonetheless, MaxEnt continues to serve as a powerful and accessible tool for prediction, and can support decision-making processes in conservation when properly combined with a strong working knowledge of the species' ecology.
 
--   How may these questions be answered using trend analysis?
+Perhaps the strongest application of this tool is to help regional biologists identify suitable habitat for species of interest. Once regional biologists have validated model predictions (i.e. there is suitable habitat where the model suggests) using their domain expertise, they can use this information to engage stakeholders in productive conversations about resource planning and allocation.
+
+Over the last decade, the Northwest Bat Hub has partnered with researchers across varying academic and governmental institutions to pioneer statistical methods which allow them to make robust inference about the status of specie's occupancy over time. These methods meet many of the shortcomings of MaxEnt, but work at a less fine resolution as is determined by the 10 km^2^ NABat grid. For that reason, MaxEnt results can provide useful high-resolution insights to habitat abundance when interpreted with some discretion. Future work will aim to leverage Bayesian single-species, multi-season modeling approaches to make inferences about the population trends over time.
+
+# Acknowledgements
+
+The Northwest Bat Hub thanks its funding and contributing partners for their continued support to better understand regional status and trends of bats in the Pacific Northwest.
 
 # References
 
 ::: {#refs}
 :::
 
-# Appendix  {#sec-appendix}
+# Appendix {#sec-appendix}
 
 ## Model Diagnostics
 
+As in any scenario where we use grid-search and cross-validation techniques to fit and select a best model, we need to assess the potential for model overfitting using some metric(s). A model that is overfit will predict poorly outside of the training data. The following code can be used to plot (@fig-diagnostics) OR.MTP and AUC-ROC—the two metrics recommended by the authors of `ENMeval`— across the range of RM values for each combination of feature classes.
+
+```{r}
+#| label: fig-diagnostics
+#| fig-cap: "Model diagnostics Omission Rate at the Minimum Presence Thershold (OR.MTP) and Area Under the Receiever Operating Characteristic (AUC-ROC) used to determined the best-fitting model for *Lasiurus cinereus*"
+library("ENMeval")
+block.res <- readRDS(here("DataProcessed.nosync/ModResults/block_res.rds"))
+
+ENMeval::evalplot.stats(e = block.res$laci, stats = c("or.mtp", "auc.val"), color = "fc", x.var = "rm", 
+               dodge = 0.5)
+```
+
+Results can also be plotted without error bars to make things more clear.
+
+```{r}
+#| label: fig-noerror
+#| fig-cap: "@fig-diagnostics with error bars removed for clarity."
+evalplot.stats(e = block.res$laci, stats = c("or.mtp", "auc.val"), color = "fc", x.var = "rm", error.bars = F)
+```
+
+@fig-noerror shows desirable diagnostics for *Lasiurus cinereus*. OR.MTP is close to 0 across all modeling scenarios (RM values and feature classes) and AUC-ROC is highest for models that included Linear, Quadratic, and Hinge feature classes. Diagnostic plots such as these were visually examined for models of each species.
+
 ## Expanded Results
 
-## Code Appendix
+The following results include enlarged prediction maps for each of the 14 species included in this analysis.
+
+```{r}
+#| echo: false
+# Function for plotting maps
+plot.preds <- function(res.type, spp.group){
+  ggplot()+
+    geom_spatraster(data = res.type[[spp.group]])+
+    facet_wrap(~lyr)+
+    scale_fill_viridis_c(na.value = "transparent")+
+    labs(fill = "Presence Prob.")+
+    theme_minimal()+
+    theme(axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.ticks.y = element_blank(),
+          strip.text = element_text(size = 14, face = "italic"))
+}
+
+for (i in names(results_rast)) {
+  print(plot.preds(results_rast, i))
+}
+
+```
+
+## Interactive Plot
+
+```{r}
+#| echo: false
+library("leaflet")
+pal <- colorNumeric(palette = viridis::viridis(20), domain = seq(0, 1, 0.01), na.color = "transparent")
+
+leaflet(height = 2000, width = 2000) %>% 
+addTiles() %>% 
+addRasterImage(results_rast["Lasiurus cinereus"], color = pal, opacity = 0.5, group = "Lasiurus cinereus") %>% 
+addRasterImage(results_rast["Lasionycteris noctivagans"], color = pal, opacity = 0.5, group = "Lasionycteris noctivagans") %>% 
+addRasterImage(results_rast["Myotis evotis"], color = pal, opacity = 0.5, group = "Myotis evotis") %>% 
+addRasterImage(results_rast["Eptesicus fuscus"], color = pal, opacity = 0.5, group = "Eptesicus fuscus") %>% 
+addRasterImage(results_rast["Myotis yumanensis"], color = pal, opacity = 0.5, group = "Myotis yumanensis") %>% 
+addRasterImage(results_rast["Myotis thysanodes"], color = pal, opacity = 0.5, group = "Myotis thysanodes") %>% 
+addRasterImage(results_rast["Myotis ciliolabrum"], color = pal, opacity = 0.5, group = "Myotis ciliolabrum") %>% 
+addRasterImage(results_rast["Myotis volans"], color = pal, opacity = 0.5, group = "Myotis volans") %>% 
+addRasterImage(results_rast["Antrozous pallidus"], color = pal, opacity = 0.5, group = "Antrozous pallidus") %>% 
+addRasterImage(results_rast["Parastrellus hesperus"], color = pal, opacity = 0.5, group = "Parastrellus hesperus") %>% 
+addRasterImage(results_rast["Euderma maculatum"], color = pal, opacity = 0.5, group = "Euderma maculatum") %>% 
+addRasterImage(results_rast["Myotis californicus"], color = pal, opacity = 0.5, group = "Myotis californicus") %>% 
+addRasterImage(results_rast["Myotis lucifugus"], color = pal, opacity = 0.5, group = "Myotis lucifugus") %>% 
+addRasterImage(results_rast["Corynorhinus townsendii"], color = pal, opacity = 0.5, group = "Corynorhinus townsendii") %>% 
+addLegend(pal = pal, title = "Presence Prob.", values = seq(0, 1, 0.05), position = "bottomleft") %>% 
+addLayersControl(baseGroups = c(names(results_rast)),
+    options = layersControlOptions(collapsed = T))
+```

@@ -95,6 +95,7 @@ spat_extract <- function(occs){
 ## Extract covariate values for all spp matrices and clean up names
 spp_mats <- lapply(spp_list, spat_extract) %>% lapply(., clean_names)
 
+saveRDS(spp_mats, here("DataProcessed.nosync/SpeciesOccurrence/spp_occ_mats.rds"))
 ## Remove Tabr not enough samples
 spp_mats <- spp_mats[names(spp_mats) != "tabr"]
 

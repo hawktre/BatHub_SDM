@@ -120,13 +120,12 @@ get_top_preds <- function(betas){
     drop_na() 
   
   #GT Table
-  top_preds_df %>% 
-    select(Beta) %>% 
+  top_preds_df %>%
     gt::gt(groupname_col = "species", row_group_as_column = T) %>% 
     gt::fmt_number(decimals = 2)
 }
 
-get_top_preds(betas[generalists])
+get_top_preds(betas)
 get_top_preds(betas[cliff_cave])
 get_top_preds(betas[tree])
 get_top_preds(betas[other])
@@ -138,7 +137,7 @@ plot.preds <- function(res.type, spp.group){
     geom_spatraster(data = res.type[[spp.group]])+
     facet_wrap(~lyr)+
     scale_fill_viridis_c(na.value = "transparent")+
-    labs(fill = "Occ. Prob.")+
+    labs(fill = "Presence Prob.")+
     theme(axis.text.x = element_blank(),
           axis.text.y = element_blank(),
           axis.ticks.x = element_blank(),
