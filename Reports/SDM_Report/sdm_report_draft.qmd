@@ -26,15 +26,15 @@ embed-resources: true
 
 # Executive Summary
 
-The Northwestern Bat Hub for Population Monitoring and Research (Northwest Bat Hub) has collaborated with governmental partners to collect a robust summer acoustic monitoring dataset for the 15 bat species found in the Pacific Northwest, beginning in 2016. Here, we demonstrate how we can leverage these data to create high-resolution (\~1km^2^) range maps covering Oregon, Washington, and Idaho using the popular Maximum Entropy (MaxEnt) approach in 'R'. Results show well-calibrated models with results that are consistent with previously published literature in Oregon and Washington, and serve as one of the first attempts at creating predictive maps for all common Northwestern Bat Species in the state of Idaho. While MaxEnt analyses are not commonly published in isolation, this exercise proves as useful tool to glean valuable information regarding habitat suitability for the bats of the Pacific Northwest and can aid in conservation management and planning in conjunction with the domain expertise of regional biologists.
+The Northwestern Bat Hub for Population Monitoring and Research (Northwest Bat Hub) has collaborated with governmental partners to collect a robust summer acoustic monitoring dataset for the 15 bat species found in the Pacific Northwest, beginning in 2016. Here, we demonstrate how we can leverage these data to create high-resolution (\~1km^2^) range maps covering Oregon, Washington, and Idaho using the popular Maximum Entropy (MaxEnt) approach in 'R'. Results show well-calibrated models that are consistent with previously published literature in Oregon and Washington, and serve as one of the first attempts at creating predictive maps for all common northwestern species in the state of Idaho. While MaxEnt analyses are not commonly published in isolation, this exercise proves as useful tool to glean valuable information regarding habitat suitability for the bats of the Pacific Northwest and can aid in conservation eplanning when used in conjunction with the domain expertise of regional biologists.
 
 # Background
 
-The Northwestern Hub for Bat Population Research and Monitoring (Northwest Bat Hub) began efforts at annual summer occupancy surveys for the 15 bat species found in the Pacific Northwest in 2016 as a regional member of the North American Bat Monitoring Program (NABat). This effort has led to the collection of a robust species occurrence dataset, currently spanning eight years, which has contributed to national efforts at analyzing population-level trends at the national level. [@udell] At a regional level, the Northwest Bat Hub has also produced many publications influencing study design,[@reichert2021; @rodhouse2017] data analysis, [@irvine2018] and conservation management.[@rodhouse2019; @rodhouse2021]
+The Northwestern Hub for Bat Population Research and Monitoring (Northwest Bat Hub) began efforts at annual summer occupancy surveys for the 15 bat species found in the Pacific Northwest in 2016 as a regional member of the North American Bat Monitoring Program (NABat). This effort has led to the collection of a robust species occurrence dataset which has contributed to national efforts at analyzing population-level trends at the national level. [@udell] At a regional level, the Northwest Bat Hub has also produced many publications influencing study design,[@reichert2021; @rodhouse2017] data analysis, [@irvine2018] and conservation management.[@rodhouse2019; @rodhouse2021]
 
-Initial monitoring efforts began in Oregon but have since expanded to include partners in Washington (2018) and Idaho (2020). As a result, regional analyses have focused primarily on Oregon and Washington. The Northwest Bat Hub and it's partners now have three years of vetted summer acoustic monitoring data which include Idaho, and are uniquely positioned to expand analyses to encompass that data.
+Initial monitoring efforts began in Oregon but have since expanded to include partners in Washington (2018) and Idaho (2020). As a result, regional analyses have focused primarily on Oregon and Washington. The Northwest Bat Hub and it's partners now have three years of vetted summer acoustic monitoring data which include Idaho, and are uniquely positioned to expand analyses to encompass these data.
 
-The NABat grid has been designed to account for species absence, and serves as the foundation for many analyses conducted using summer acoustic monitoring data. @reichert2021 The Maximum Entropy (MaxEnt) machine learning method leverages pseudo-absence (aka "presence-only") data to make prediction about species occurrence across a study area. MaxEnt does not provide a robust infrastructure for population trends across time, but does provide an approachable framework for producing region-wide range maps using the NABat summer acoustic monitoring data set.
+The NABat grid has been designed to account for species absence, and serves as the foundation for many analyses conducted using summer acoustic monitoring data. @reichert2021 The Maximum Entropy (MaxEnt) machine learning method leverages pseudo-absence (aka "presence-only") data to make prediction about species presence across a study area. MaxEnt does not provide a robust infrastructure for analyzing population trends across time, but does provide an approachable framework for producing region-wide range maps using the NABat summer acoustic monitoring data set.
 
 In this report, we will describe our approach to creating range maps for 14 bat species in the three-state region of Oregon, Washington, and Idaho using the MaxEnt machine learning method. We then demonstrate how our approach can be flexibly implemented as a straight-forward extension to existing Bat Hub protocols. Finally, we discuss how collaborators might interpret and leverage model results in decision-making processes to support bat conservation.
 
@@ -42,7 +42,7 @@ In this report, we will describe our approach to creating range maps for 14 bat 
 
 ## Why use MaxEnt?
 
-Species Distribution Models (SDMs) are a part of a growing field of spatiotemporal models that leverage advancements in Machine Learning (ML) and Artificial Intelligence (AI). The Maximum Entropy (MaxEnt) @phillips2017a method has become particularly popular due to its ability to handle presence-only data and its availability through open-source releases of the original java application @phillipsc and approximations in statistical modeling software ‘R’. @kass2021a
+Species Distribution Models (SDMs) are a part of a growing field of spatiotemporal models that leverage advancements in Machine Learning (ML). The Maximum Entropy (MaxEnt) @phillips2017a method has become particularly popular due to its ability to handle presence-only data and its availability through open-source releases of the original java application @phillipsc and approximations in statistical modeling software ‘R’. @kass2021a
 
 Briefly, MaxEnt works to make predictions about the probability of species occurrence across a study area given a set of vetted observations and a set of rasterized explanatory variables, also termed *environmental covariates.* The spatial resolution of the resulting predictions is determined by the spatial resolution of the available environmental covariates. In the context of this report, the study area of interest is the three-state region of Oregon, Washington, and Idaho. The spatial resolution of the environmental covariate rasters (i.e. the unit of prediction) is \~1km^2^. Species observation records were obtained from the Northwest Bat Hub's vetted acoustic monitoring records and environmental covariates (@tbl-covars) were determined through literature review.[@udell; @rodhouse2019; @rodhouse2021] An in-depth explanation and motivation for the use of MaxEnt for ecological modeling purposes can be found in Elith et al., 2011. @elith2011
 
@@ -79,12 +79,15 @@ First it is helpful to define our study area, which is the three-state region of
 #| output: false
 #| warning: false
 #Load required libraries
-require(tidyverse)
-require(tidyterra)
-require(here) #for relative pathnames
-require(sf)
-require(usmap)
-require(terra)
+library(tidyverse)
+library(tidyterra)
+library(here) #for relative pathnames
+library(sf)
+library(usmap)
+library(terra)
+library(gt)
+library(viridis)
+library(leaflet)
 ```
 
 ```{r}
@@ -113,6 +116,30 @@ ggplot()+
 ```
 
 ### Species Observations
+
+Analyses included 14 species found commonly in the Pacific Northwest (@tbl-spec). *Tadirida brasiliensis* was excluded due to small sample size and its limited range in southern Oregon.
+
+```{r}
+#| label: tbl-spec
+#| tbl-cap: "Common name, scientific name, and four-letter code for each of the bat species included in this analysis."
+#| echo: false
+#| eval: true
+wbwg <- readxl::read_xlsx(here("Background/SpeciesNatHistMatrix.xlsx"), sheet = 2) %>% 
+  drop_na(fourlettername)
+
+wbwg %>% 
+  mutate("Common Name" = str_to_title(`COMMON NAME`),
+         "Scientific Name" = SPECIES,
+         "Four Letter Code" = fourlettername) %>% 
+  select("Common Name", "Scientific Name", "Four Letter Code") %>% 
+  filter("Four Letter Code" != "tabr") %>% 
+  arrange("Scientific Name") %>% 
+  gt() %>% 
+  tab_style(
+    style = list(cell_text(style = "italic")),
+    locations = cells_body(
+      columns = "Scientific Name")) 
+```
 
 Assuming the user has access to the Northwest Bat Hub's NABat Acoustic Monitoring Database, species occurrence records should be formatted as follows:
 
@@ -277,7 +304,7 @@ It is good practice to review your environmental covariates once completing this
 #| label: fig-covars
 #| fig-cap: "Rasters for each included environmentl covariate. Land cover covariates are to be interpreted as the proportion of a given pixel occupied by that land cover type."
 
-require(viridis)
+library(viridis)
 
 covars_stack <- rast(here("DataProcessed.nosync/Covariates/env_covars.tif")) 
 
@@ -293,7 +320,7 @@ Once environmental covariates are stored in a single object, we need to separate
 #| eval: false
 
 # Create results vector for each species -------------------------------
-require(janitor)
+library(janitor)
 ## rename our data frame to something more identifiable
 spp_occ <- dat_overall
 
@@ -352,7 +379,7 @@ The resulting list should contain a data frame of occurrence records and environ
 #| echo: false
 #| eval: true
 
-require(gt)
+library(gt)
 
 spp_mats<- readRDS(here("DataProcessed.nosync/SpeciesOccurrence/spp_occ_mats.rds"))
 
@@ -371,7 +398,7 @@ The following code can be used to generate and partition background points.
 #| echo: true
 #| eval: false
 
-require(ENMeval)
+library(ENMeval)
 # Background Points -------------------------------------------------------
 ## We are going to do something with a random component, so we set the seed for reproducibility
 set.seed(123)
@@ -398,7 +425,7 @@ We now have all of the required piece of information to fit the MaxEnt model:
 3.  Background (pseudo-absence) data
 4.  Partitions for model fitting
 
-The following code can be used to fit the model for all 14 bat species of interest.
+The following code has been serialized to fit the model for all species of interest.
 
 ```{r}
 #| echo: true
@@ -597,4 +624,10 @@ addRasterImage(results_rast["Corynorhinus townsendii"], color = pal, opacity = 0
 addLegend(pal = pal, title = "Presence Prob.", values = seq(0, 1, 0.05), position = "bottomleft") %>% 
 addLayersControl(baseGroups = c(names(results_rast)),
     options = layersControlOptions(collapsed = T))
+```
+
+## Session Info
+
+```{r}
+sessionInfo()
 ```
